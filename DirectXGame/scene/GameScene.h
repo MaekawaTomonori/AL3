@@ -52,4 +52,9 @@ private: // メンバ変数
 
 	Sprite* sprite_ = nullptr;
 
+    Model* model_ = nullptr;
+	WorldTransform worldTransform_;
+	ViewProjection viewProjection_;
+
+	float inputFloat3[3] = {0,0,0};
 };
