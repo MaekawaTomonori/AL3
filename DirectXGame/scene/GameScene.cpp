@@ -16,7 +16,7 @@ void GameScene::Initialize() {
 	input_ = Input::GetInstance();
 	audio_ = Audio::GetInstance();
 
-	texture_ = TextureManager::Load("white1x1.png");
+	texture_ = TextureManager::Load("mario.jpg");
 	sprite_ = Sprite::Create(texture_, {100, 50});
 	model_ = Model::Create();
 	worldTransform_.Initialize();
