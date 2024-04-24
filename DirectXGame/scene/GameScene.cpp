@@ -1,13 +1,17 @@
 #include "GameScene.h"
+
+#include "AxisIndicator.h"
 #include "TextureManager.h"
-#include <cassert>
 #include "ImGuiManager.h"
+#include "PrimitiveDrawer.h"
+#include "DebugCamera.h"
 
 GameScene::GameScene() {}
 
 GameScene::~GameScene() {
 	delete sprite_;
 	delete model_;
+	delete debugCamera_;
 }
 
 void GameScene::Initialize() {
@@ -21,6 +25,12 @@ void GameScene::Initialize() {
 	model_ = Model::Create();
 	worldTransform_.Initialize();
 	viewProjection_.Initialize();
+
+	PrimitiveDrawer::GetInstance()->SetViewProjection(&viewProjection_);
+
+	debugCamera_ = new DebugCamera(1280, 720);
+	AxisIndicator::GetInstance()->SetVisible(true);
+	AxisIndicator::GetInstance()->SetTargetViewProjection(&debugCamera_->GetViewProjection());
 }
 
 void GameScene::Update() {
@@ -29,10 +39,14 @@ void GameScene::Update() {
 	pos.y += 1;
 	sprite_->SetPosition(pos);
 
+#ifdef _DEBUG
 	ImGui::Begin("Debug1");
 	ImGui::InputFloat3("InputFloat3", inputFloat3);
 	ImGui::SliderFloat3("SliderFloat3", inputFloat3, 0.f, 1.f);
 	ImGui::End();
+#endif
+
+	debugCamera_->Update();
 }
 
 void GameScene::Draw() {
@@ -62,7 +76,9 @@ void GameScene::Draw() {
 	/// ここに3Dオブジェクトの描画処理を追加できる
 	/// </summary>
 
-	model_->Draw(worldTransform_, viewProjection_, texture_);
+	model_->Draw(worldTransform_, debugCamera_->GetViewProjection(), texture_);
+
+	PrimitiveDrawer::GetInstance()->DrawLine3d({0,0,0}, {0, 10, 0}, {1, 0, 0, 1});
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
