@@ -3,10 +3,8 @@
 #include "Audio.h"
 #include "DirectXCommon.h"
 #include "Input.h"
-#include "Model.h"
-#include "Sprite.h"
-#include "ViewProjection.h"
-#include "WorldTransform.h"
+
+class Player;
 
 /// <summary>
 /// ゲームシーン
@@ -47,4 +45,6 @@ private: // メンバ変数
 	/// <summary>
 	/// ゲームシーン用
 	/// </summary>
+
+	Player* player_ = nullptr;
 };
