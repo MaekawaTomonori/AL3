@@ -1,16 +1,18 @@
 #include "GameScene.h"
-#include "TextureManager.h"
-#include <cassert>
 
 #include "Model.h"
 #include "Player.h"
 #include "Sprite.h"
+#include "TextureManager.h"
+#include "ViewProjection.h"
 
 
 GameScene::GameScene() {}
 
 GameScene::~GameScene() {
+	delete model_;
 	delete player_;
+	delete viewProjection_;
 }
 
 void GameScene::Initialize() {
@@ -19,7 +21,14 @@ void GameScene::Initialize() {
 	input_ = Input::GetInstance();
 	audio_ = Audio::GetInstance();
 
-	player_->Initialize();
+	model_ = Model::Create();
+	textureHandle_ = TextureManager::Load("mario.jpg");
+
+	viewProjection_ = new ViewProjection();
+	viewProjection_->Initialize();
+
+	player_ = new Player();
+	player_->Initialize(model_, textureHandle_, viewProjection_);
 }
 
 void GameScene::Update() {

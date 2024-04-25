@@ -3,6 +3,7 @@
 #include "Audio.h"
 #include "DirectXCommon.h"
 #include "Input.h"
+#include "Model.h"
 
 class Player;
 
@@ -45,6 +46,12 @@ private: // メンバ変数
 	/// <summary>
 	/// ゲームシーン用
 	/// </summary>
+
+
+	uint32_t textureHandle_ = 0u;
+	Model* model_ = nullptr;
+
+	ViewProjection* viewProjection_ = nullptr;
 
 	Player* player_ = nullptr;
 };
