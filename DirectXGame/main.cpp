@@ -4,6 +4,7 @@
 #include "GameScene.h"
 #include "ImGuiManager.h"
 #include "PrimitiveDrawer.h"
+#include "Sprite.h"
 #include "TextureManager.h"
 #include "WinApp.h"
 
