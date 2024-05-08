@@ -2,15 +2,21 @@
 #include "TextureManager.h"
 #include <cassert>
 
-#include "Model.h"
-#include "Player.h"
 #include "Sprite.h"
-
+#include "ViewProjection.h"
+#include "WorldTransform.h"
 
 GameScene::GameScene() {}
 
 GameScene::~GameScene() {
-	delete player_;
+	for (std::vector<WorldTransform*>& blockLine : worldTransformBlocks_){
+		for (WorldTransform* wtfb : blockLine){
+			delete wtfb;
+		}
+	}
+	worldTransformBlocks_.clear();
+
+	delete model_;
 }
 
 void GameScene::Initialize() {
@@ -19,11 +25,39 @@ void GameScene::Initialize() {
 	input_ = Input::GetInstance();
 	audio_ = Audio::GetInstance();
 
-	player_->Initialize();
+	const uint32_t kNumBlockVertical = 10;
+	const uint32_t kNumBlockHorizontal = 20;
+	const float kBlockWidth = 2.f;
+	const float kBlockHeight = 2.f;
+	worldTransformBlocks_.resize(kNumBlockVertical);
+	for (uint32_t row = 0; row < kNumBlockVertical; ++row){
+		worldTransformBlocks_[row].resize(kNumBlockHorizontal);
+		for (uint32_t column = 0; column < kNumBlockHorizontal; ++column){
+			if(row % 2 == 0 && column % 2 != 0 || row%2!=0 && column%2==0)continue;
+			worldTransformBlocks_[row][column] = new WorldTransform();
+			worldTransformBlocks_[row][column]->Initialize();
+			worldTransformBlocks_[row][column]->translation_.x = kBlockWidth * column;
+			worldTransformBlocks_[row][column]->translation_.y = kBlockHeight * row;
+		}
+	}
+	blockTexture_ = TextureManager::Load("dirt.png");
+
+	viewProjection_.Initialize();
+	model_ = Model::Create();
+
+#ifdef _DEBUG
+	isDebugCameraActive_ = true;
+	debugCamera_ = new DebugCamera(1280, 720);
+#endif
 }
 
 void GameScene::Update() {
-	player_->Update();
+	for (std::vector<WorldTransform*>& blockLine : worldTransformBlocks_){
+		for (WorldTransform* wtfb : blockLine){
+			if (!wtfb)continue;
+			wtfb->UpdateMatrix();
+		}
+	}
 }
 
 void GameScene::Draw() {
@@ -53,7 +87,13 @@ void GameScene::Draw() {
 	/// ここに3Dオブジェクトの描画処理を追加できる
 	/// </summary>
 
-	player_->Draw();
+	//block
+	for (auto blockLine : worldTransformBlocks_){
+		for (WorldTransform* block : blockLine){
+			if (!block)continue;
+			model_->Draw(*block, viewProjection_, blockTexture_);
+		}
+	}
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();

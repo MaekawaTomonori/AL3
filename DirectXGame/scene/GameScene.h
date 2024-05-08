@@ -1,8 +1,11 @@
 #pragma once
 
 #include "Audio.h"
+#include "DebugCamera.h"
 #include "DirectXCommon.h"
 #include "Input.h"
+#include "Model.h"
+#include "ViewProjection.h"
 
 class Player;
 
@@ -46,5 +49,15 @@ private: // メンバ変数
 	/// ゲームシーン用
 	/// </summary>
 
-	Player* player_ = nullptr;
+	uint32_t blockTexture_{};
+
+	ViewProjection viewProjection_ = {};
+
+	Model* model_ = nullptr;
+
+	std::vector<std::vector<WorldTransform*>> worldTransformBlocks_;
+
+	//Debug Camera
+	bool isDebugCameraActive_ = false;
+	DebugCamera* debugCamera_ = nullptr;
 };
