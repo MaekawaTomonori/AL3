@@ -45,10 +45,12 @@ void GameScene::Initialize() {
 	viewProjection_.Initialize();
 	model_ = Model::Create();
 
+	isDebugCameraActive_ = false;
 #ifdef _DEBUG
 	isDebugCameraActive_ = true;
-	debugCamera_ = new DebugCamera(1280, 720);
 #endif
+
+	debugCamera_ = new DebugCamera(1280, 720);
 }
 
 void GameScene::Update() {
@@ -58,6 +60,24 @@ void GameScene::Update() {
 			wtfb->UpdateMatrix();
 		}
 	}
+
+#ifdef _DEBUG
+	if (input_->TriggerKey(DIK_A)){
+		isDebugCameraActive_ = !isDebugCameraActive_;
+	}
+#endif
+
+	if (isDebugCameraActive_){
+		debugCamera_->Update();
+
+		viewProjection_.matView = debugCamera_->GetViewProjection().matView;
+		viewProjection_.matProjection = debugCamera_->GetViewProjection().matProjection;
+		viewProjection_.TransferMatrix();
+	}
+	else{
+		viewProjection_.UpdateMatrix();
+	}
+
 }
 
 void GameScene::Draw() {
