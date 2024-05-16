@@ -2,6 +2,7 @@
 #include "TextureManager.h"
 #include <cassert>
 
+#include "Player.h"
 #include "Sprite.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
@@ -17,6 +18,8 @@ GameScene::~GameScene() {
 	worldTransformBlocks_.clear();
 
 	delete model_;
+	delete sky_;
+	delete debugCamera_;
 }
 
 void GameScene::Initialize() {
@@ -51,6 +54,15 @@ void GameScene::Initialize() {
 #endif
 
 	debugCamera_ = new DebugCamera(1280, 720);
+
+	sky_ = new Skydome();
+	sky_->Initialize();
+
+	player_ = new Player();
+	player_->Initialize();
+
+	viewProjection_.farZ = 1200;
+	viewProjection_.Initialize();
 }
 
 void GameScene::Update() {
@@ -77,7 +89,8 @@ void GameScene::Update() {
 	else{
 		viewProjection_.UpdateMatrix();
 	}
-
+	sky_->Update();
+	player_->Update();
 }
 
 void GameScene::Draw() {
@@ -107,6 +120,9 @@ void GameScene::Draw() {
 	/// ここに3Dオブジェクトの描画処理を追加できる
 	/// </summary>
 
+	//sky
+	sky_->Draw(viewProjection_);
+
 	//block
 	for (auto blockLine : worldTransformBlocks_){
 		for (WorldTransform* block : blockLine){
@@ -114,6 +130,9 @@ void GameScene::Draw() {
 			model_->Draw(*block, viewProjection_, blockTexture_);
 		}
 	}
+
+	//player
+	player_->Draw(viewProjection_);
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();

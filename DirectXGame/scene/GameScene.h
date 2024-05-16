@@ -5,6 +5,7 @@
 #include "DirectXCommon.h"
 #include "Input.h"
 #include "Model.h"
+#include "Skydome.h"
 #include "ViewProjection.h"
 
 class Player;
@@ -56,6 +57,12 @@ private: // メンバ変数
 	Model* model_ = nullptr;
 
 	std::vector<std::vector<WorldTransform*>> worldTransformBlocks_;
+
+	//Player
+	Player* player_ = nullptr;
+
+	//Sky
+	Skydome* sky_ = nullptr;
 
 	//Debug Camera
 	bool isDebugCameraActive_ = false;

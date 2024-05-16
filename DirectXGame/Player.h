@@ -1,15 +1,14 @@
 #pragma once
-#include <cstdint>
 #include "WorldTransform.h"
 #include "Model.h"
 
 class Player{
 public:
+~Player();
 void Initialize();
 void Update();
-void Draw();
+void Draw(const ViewProjection& viewProjection) const;
 private:
-uint32_t textureHandle_ = 0u;
 Model* model_ = nullptr;
-WorldTransform worldTransform_;
+WorldTransform worldTransform_{};
 };
