@@ -6,14 +6,13 @@ Player::~Player() {
 
 void Player::Initialize() {
     worldTransform_.Initialize();
+    worldTransform_.translation_ = {0, 2, 0};
     model_ = new Model;
     model_ = Model::CreateFromOBJ("player");
 }
 
 void Player::Update() {
-    worldTransform_.translation_ = {0, 2, 0};
     worldTransform_.UpdateMatrix();
-    worldTransform_.TransferMatrix();
 }
 
 void Player::Draw(const ViewProjection& viewProjection) const {

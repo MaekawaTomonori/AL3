@@ -10,16 +10,10 @@
 GameScene::GameScene() {}
 
 GameScene::~GameScene() {
-	for (std::vector<WorldTransform*>& blockLine : worldTransformBlocks_){
-		for (WorldTransform* wtfb : blockLine){
-			delete wtfb;
-		}
-	}
-	worldTransformBlocks_.clear();
-
 	delete model_;
 	delete sky_;
 	delete debugCamera_;
+	delete map_;
 }
 
 void GameScene::Initialize() {
@@ -27,23 +21,6 @@ void GameScene::Initialize() {
 	dxCommon_ = DirectXCommon::GetInstance();
 	input_ = Input::GetInstance();
 	audio_ = Audio::GetInstance();
-
-	const uint32_t kNumBlockVertical = 10;
-	const uint32_t kNumBlockHorizontal = 20;
-	const float kBlockWidth = 2.f;
-	const float kBlockHeight = 2.f;
-	worldTransformBlocks_.resize(kNumBlockVertical);
-	for (uint32_t row = 0; row < kNumBlockVertical; ++row){
-		worldTransformBlocks_[row].resize(kNumBlockHorizontal);
-		for (uint32_t column = 0; column < kNumBlockHorizontal; ++column){
-			if(row % 2 == 0 && column % 2 != 0 || row%2!=0 && column%2==0)continue;
-			worldTransformBlocks_[row][column] = new WorldTransform();
-			worldTransformBlocks_[row][column]->Initialize();
-			worldTransformBlocks_[row][column]->translation_.x = kBlockWidth * column;
-			worldTransformBlocks_[row][column]->translation_.y = kBlockHeight * row;
-		}
-	}
-	blockTexture_ = TextureManager::Load("dirt.png");
 
 	viewProjection_.Initialize();
 	model_ = Model::Create();
@@ -63,15 +40,12 @@ void GameScene::Initialize() {
 
 	viewProjection_.farZ = 1200;
 	viewProjection_.Initialize();
+
+	map_ = new Map();
+	map_->Initialize();
 }
 
 void GameScene::Update() {
-	for (std::vector<WorldTransform*>& blockLine : worldTransformBlocks_){
-		for (WorldTransform* wtfb : blockLine){
-			if (!wtfb)continue;
-			wtfb->UpdateMatrix();
-		}
-	}
 
 #ifdef _DEBUG
 	if (input_->TriggerKey(DIK_A)){
@@ -89,6 +63,7 @@ void GameScene::Update() {
 	else{
 		viewProjection_.UpdateMatrix();
 	}
+	map_->Update();
 	sky_->Update();
 	player_->Update();
 }
@@ -124,12 +99,7 @@ void GameScene::Draw() {
 	sky_->Draw(viewProjection_);
 
 	//block
-	for (auto blockLine : worldTransformBlocks_){
-		for (WorldTransform* block : blockLine){
-			if (!block)continue;
-			model_->Draw(*block, viewProjection_, blockTexture_);
-		}
-	}
+	map_->Draw(viewProjection_);
 
 	//player
 	player_->Draw(viewProjection_);

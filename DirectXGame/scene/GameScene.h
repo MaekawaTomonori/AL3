@@ -4,6 +4,7 @@
 #include "DebugCamera.h"
 #include "DirectXCommon.h"
 #include "Input.h"
+#include "MapChipField.h"
 #include "Model.h"
 #include "Skydome.h"
 #include "ViewProjection.h"
@@ -50,13 +51,14 @@ private: // メンバ変数
 	/// ゲームシーン用
 	/// </summary>
 
-	uint32_t blockTexture_{};
+
 
 	ViewProjection viewProjection_ = {};
 
 	Model* model_ = nullptr;
 
-	std::vector<std::vector<WorldTransform*>> worldTransformBlocks_;
+	//map
+	Map* map_ = nullptr;
 
 	//Player
 	Player* player_ = nullptr;
