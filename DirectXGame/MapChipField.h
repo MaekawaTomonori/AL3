@@ -4,12 +4,14 @@
 #include <vector>
 
 #include "Model.h"
+#include "nullable.h"
 #include "Vector3.h"
 #include "WorldTransform.h"
 
 enum class MapBlockType{
 	AIR,
 	BLOCK,
+	PLAYER,
 };
 
 struct MapData{
@@ -42,11 +44,20 @@ private:
 
 	Model* blockModel_ = nullptr;
 
+	nullable<Vector3> playerPos;
+
 public:
 	~Map();
 	void Initialize();
 	void Update();
 	void Draw(const ViewProjection& viewProjection);
+
+	//GetPlayer
+	//return player location
+	//@nullable
+	nullable<Vector3> getPlayer() const {
+		return playerPos;
+	}
 
 private: //private methods
 	void GenerateBlock();

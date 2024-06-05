@@ -35,14 +35,16 @@ void GameScene::Initialize() {
 	sky_ = new Skydome();
 	sky_->Initialize();
 
+	map_ = new Map();
+	map_->Initialize();
+
 	player_ = new Player();
 	player_->Initialize();
+	player_->applyMap(*map_);
 
 	viewProjection_.farZ = 1200;
 	viewProjection_.Initialize();
 
-	map_ = new Map();
-	map_->Initialize();
 }
 
 void GameScene::Update() {

@@ -11,8 +11,9 @@
 
 namespace{
     std::map<std::string, MapBlockType> mapTable = {
-    {"0", MapBlockType::AIR},
-    {"1", MapBlockType::BLOCK}
+    	{"0", MapBlockType::AIR},
+    	{"1", MapBlockType::BLOCK},
+    	{"2", MapBlockType::PLAYER},
     };
 
     std::map<std::string, MapData> loadedMaps;
@@ -36,7 +37,7 @@ void MapChipField::LoadMapCsv(std::string filePath) {
     //既に読み込んでいたら返す
     if (loadedMaps.contains(filePath)){
         mapData_ = loadedMaps[filePath];
-    	return;
+        return;
     }
 
     //load method
@@ -50,16 +51,16 @@ void MapChipField::LoadMapCsv(std::string filePath) {
 
 
     std::string line;
-    for(uint32_t i = 0; i < kNumBlockVertical; ++i){
+    for (uint32_t i = 0; i < kNumBlockVertical; ++i){
         getline(mapCsv, line);
 
         std::istringstream lineStream(line);
 
-        for(uint32_t j = 0; j < kNumBlockHorizontal; ++j){
+        for (uint32_t j = 0; j < kNumBlockHorizontal; ++j){
             std::string word;
             getline(lineStream, word, ',');
 
-            if(mapTable.contains(word)){
+            if (mapTable.contains(word)){
                 mapData_.blockType[i][j] = mapTable[word];
             }
         }
@@ -69,10 +70,10 @@ void MapChipField::LoadMapCsv(std::string filePath) {
 }
 
 MapBlockType MapChipField::getMapBlockTypeByIndex(uint32_t xIndex, uint32_t yIndex) const {
-    if(xIndex < 0 || kNumBlockHorizontal -1 < xIndex){
+    if (xIndex < 0 || kNumBlockHorizontal - 1 < xIndex){
         return MapBlockType::AIR;
     }
-    if(yIndex < 0 || kNumBlockVertical - 1 < yIndex){
+    if (yIndex < 0 || kNumBlockVertical - 1 < yIndex){
         return MapBlockType::AIR;
     }
 
@@ -84,7 +85,7 @@ Vector3 MapChipField::getMapPositionByIndex(uint32_t xIndex, uint32_t yIndex) {
 }
 
 MapData MapChipField::getMapData() const {
-	return mapData_;
+    return mapData_;
 }
 
 Map::~Map() {
@@ -101,12 +102,12 @@ void Map::Initialize() {
 }
 
 void Map::Update() {
-	for (std::vector<WorldTransform*>& row : worldTransforms_){
-		for (WorldTransform* wtfb : row){
-			if (!wtfb)continue;
-			wtfb->UpdateMatrix();
-		}
-	}
+    for (std::vector<WorldTransform*>& row : worldTransforms_){
+        for (WorldTransform* wtfb : row){
+            if (!wtfb)continue;
+            wtfb->UpdateMatrix();
+        }
+    }
 }
 
 void Map::Draw(const ViewProjection& viewProjection) {
@@ -123,12 +124,16 @@ void Map::GenerateBlock() {
     for (uint32_t row = 0; row < kNumBlockVertical; ++row){
         worldTransforms_[row].resize(kNumBlockHorizontal);
         for (uint32_t col = 0; col < kNumBlockHorizontal; ++col){
-		    if(field_->getMapBlockTypeByIndex(col, row) == MapBlockType::BLOCK){
+            if (field_->getMapBlockTypeByIndex(col, row) == MapBlockType::PLAYER){
+                playerPos = field_->getMapPositionByIndex(col, row);
+                continue;
+            }
+            if (field_->getMapBlockTypeByIndex(col, row) == MapBlockType::BLOCK){
                 WorldTransform* wt = new WorldTransform;
-		    	wt->Initialize();
+                wt->Initialize();
                 worldTransforms_[row][col] = wt;
                 worldTransforms_[row][col]->translation_ = field_->getMapPositionByIndex(col, row);
-		    }
-	    }
+            }
+        }
     }
 }
