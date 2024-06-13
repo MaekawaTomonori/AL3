@@ -42,6 +42,14 @@ void Player::applyMap(const Map& map) {
     }
 }
 
+const WorldTransform& Player::GetWorldTransform() const {
+	return worldTransform_;
+}
+
+const Vector3& Player::GetVelocity() const {
+	return velocity_;
+}
+
 void Player::Move() {
     if(0 < turnTimer_){
         turnTimer_ += 1.f / 60.f;
@@ -59,7 +67,7 @@ void Player::Move() {
 
 	bool landing = false;
     if(velocity_.y < 0){
-	    if(worldTransform_.translation_.y <= 1.0f){
+	    if(worldTransform_.translation_.y <= 2.f){
             landing = true;
 	    }
     }
@@ -96,7 +104,7 @@ void Player::Move() {
         velocity_.y = std::max(velocity_.y, -LIMIT_FALL_SPEED);
 
         if (landing){
-            worldTransform_.translation_.y = 1.f;
+            worldTransform_.translation_.y = 2.f;
             velocity_.x *= (1.f - kAttenuation);
             velocity_.y = 0;
             onGround_ = true;

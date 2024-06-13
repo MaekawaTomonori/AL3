@@ -68,3 +68,7 @@ Matrix4x4 MathUtils::MakeRotateZ(const float rad) {
 Matrix4x4 MathUtils::MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate) {
     return MakeScaleMatrix(scale) * (MakeRotateX(rotate.x) * MakeRotateY(rotate.y) * MakeRotateZ(rotate.z)) * MakeTranslateMatrix(translate);
 }
+
+Vector3 MathUtils::Lerp(const Vector3& value, const Vector3& destination, float percent) {
+    return value + (destination - value) * percent;
+}

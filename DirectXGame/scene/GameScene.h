@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Audio.h"
+#include "CameraController.h"
 #include "DebugCamera.h"
 #include "DirectXCommon.h"
 #include "Input.h"
@@ -51,10 +52,10 @@ private: // メンバ変数
 	/// ゲームシーン用
 	/// </summary>
 
+	//Camera
+	CameraController* cameraController_ = nullptr;
 
-
-	ViewProjection viewProjection_ = {};
-
+	//model
 	Model* model_ = nullptr;
 
 	//map

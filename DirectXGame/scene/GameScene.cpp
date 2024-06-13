@@ -1,11 +1,12 @@
 #include "GameScene.h"
-#include "TextureManager.h"
 #include <cassert>
 
-#include "Player.h"
-#include "Sprite.h"
+#include "TextureManager.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
+#include "Sprite.h"
+
+#include "Player.h"
 
 GameScene::GameScene() {}
 
@@ -22,7 +23,6 @@ void GameScene::Initialize() {
 	input_ = Input::GetInstance();
 	audio_ = Audio::GetInstance();
 
-	viewProjection_.Initialize();
 	model_ = Model::Create();
 
 	isDebugCameraActive_ = false;
@@ -42,29 +42,23 @@ void GameScene::Initialize() {
 	player_->Initialize();
 	player_->applyMap(*map_);
 
-	viewProjection_.farZ = 1200;
-	viewProjection_.Initialize();
-
+	cameraController_ = new CameraController;
+	cameraController_->Initialize();
+	cameraController_->SetTarget(player_);
+	CameraController::Rect area = {12, 100 - 12, 6, 6};
+	cameraController_->SetMovableArea(area);
+	cameraController_->Reset();
 }
 
 void GameScene::Update() {
 
 #ifdef _DEBUG
-	if (input_->TriggerKey(DIK_A)){
-		isDebugCameraActive_ = !isDebugCameraActive_;
-	}
+	//if (input_->TriggerKey(DIK_A)){
+		//isDebugCameraActive_ = !isDebugCameraActive_;
+	//}
 #endif
-
-	if (isDebugCameraActive_){
-		debugCamera_->Update();
-
-		viewProjection_.matView = debugCamera_->GetViewProjection().matView;
-		viewProjection_.matProjection = debugCamera_->GetViewProjection().matProjection;
-		viewProjection_.TransferMatrix();
-	}
-	else{
-		viewProjection_.UpdateMatrix();
-	}
+	cameraController_->Update();
+	
 	map_->Update();
 	sky_->Update();
 	player_->Update();
@@ -98,13 +92,13 @@ void GameScene::Draw() {
 	/// </summary>
 
 	//sky
-	sky_->Draw(viewProjection_);
+	sky_->Draw(cameraController_->GetViewProjection());
 
 	//block
-	map_->Draw(viewProjection_);
+	map_->Draw(cameraController_->GetViewProjection());
 
 	//player
-	player_->Draw(viewProjection_);
+	player_->Draw(cameraController_->GetViewProjection());
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
