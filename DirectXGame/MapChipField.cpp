@@ -119,6 +119,27 @@ void Map::Draw(const ViewProjection& viewProjection) {
     }
 }
 
+MapBlockType Map::GetMapBlockTypeByIndex(IndexSet index) const {
+    return field_->getMapBlockTypeByIndex(index.xIndex, index.yIndex);
+}
+
+Map::Rect Map::GetRectByIndex(IndexSet index) {
+    Vector3 center = field_->getMapPositionByIndex(index.xIndex, index.yIndex);
+    return Rect {
+        center.x - kBlockWidth / 2.f,
+        center.x + kBlockWidth / 2.f,
+        center.y - kBlockHeight / 2.f,
+        center.y + kBlockHeight / 2.f
+    };
+}
+
+Map::IndexSet Map::GetMapIndexSetByPosition(const Vector3& position) const {
+    return IndexSet {
+        static_cast<uint32_t>((position.x + kBlockWidth / 2.f) / kBlockWidth),
+        static_cast<uint32_t> (kNumBlockVertical - 1 - (position.y + kBlockHeight / 2.f) / kBlockHeight)
+    };
+}
+
 void Map::GenerateBlock() {
     worldTransforms_.resize(kNumBlockVertical);
     for (uint32_t row = 0; row < kNumBlockVertical; ++row){

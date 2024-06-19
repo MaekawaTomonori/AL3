@@ -47,10 +47,23 @@ private:
 	nullable<Vector3> playerPos;
 
 public:
+	struct IndexSet{
+		uint32_t xIndex;
+		uint32_t yIndex;
+	};
+
+	struct Rect{
+		float Left;
+		float Right;
+		float Bottom;
+		float Top;
+	};
+
 	~Map();
 	void Initialize();
 	void Update();
 	void Draw(const ViewProjection& viewProjection);
+
 
 	//GetPlayer
 	//return player location
@@ -58,6 +71,10 @@ public:
 	nullable<Vector3> getPlayer() const {
 		return playerPos;
 	}
+
+	IndexSet GetMapIndexSetByPosition(const Vector3& position) const;
+	MapBlockType GetMapBlockTypeByIndex(IndexSet index) const;
+	Rect GetRectByIndex(IndexSet index);
 
 private: //private methods
 	void GenerateBlock();

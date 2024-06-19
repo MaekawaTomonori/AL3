@@ -9,12 +9,29 @@ enum class LRDirection{
 
 class Map;
 class Player{
+	struct CollisionMapInfo{
+		bool Ceiling = false;
+		bool Landing = false;
+		bool Collide = false;
+		Vector3 velocity;
+	};
+
+	enum Corner{
+		kRightBottom,
+		kLeftBottom,
+		kRightTop,
+		kLeftTop,
+
+		kNumCorner
+	};
 public:
 	~Player();
 	void Initialize();
 	void Update();
 	void Draw(const ViewProjection& viewProjection) const;
-	void applyMap(const Map& map);
+
+
+	void SetMap(Map* map);
 
 	const WorldTransform& GetWorldTransform() const;
 	const Vector3& GetVelocity() const;
@@ -26,11 +43,16 @@ private:
 
 	static inline const float TURN_TIME = 0.3f;
 
-	static inline const float GRAVITY_ACCELERATION = 9.8f / 60.f;
+	static inline const float GRAVITY_ACCELERATION = 0.01f;
 	static inline const float LIMIT_FALL_SPEED = 4.9f;
-	static inline const float JUMP_ACCELERATION = 5;
+	static inline const float JUMP_ACCELERATION = 0.6f;
 
-	private:
+	static inline const float kWidth = 0.8f;
+	static inline const float kHeight = 0.8f;
+
+private:
+	Map* map_ = nullptr;
+
 	Model* model_ = nullptr;
 	WorldTransform worldTransform_ {};
 	Vector3 velocity_ = {};
@@ -41,6 +63,13 @@ private:
 
 	bool onGround_ = true;
 
-	private:
+private:
 	void Move();
+	void ReflectCollide(const CollisionMapInfo& info);
+	Vector3 CornerPosition(const Vector3& center, Corner corner);
+
+	void MapCollisionDetection(CollisionMapInfo& info);
+
+	bool isCollideAbove(CollisionMapInfo& info);
+	void onCollisionCeiling(const CollisionMapInfo& info);
 };

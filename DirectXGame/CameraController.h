@@ -39,7 +39,7 @@ private:
 	//追従するターゲット
 	Player* target_ = nullptr;
 
-	Vector3 targetOffset_ = {0,0,-40.f};
+	Vector3 targetOffset_ = {0,0,-20.f};
 
 	Vector3 cameraDestination_{};
 

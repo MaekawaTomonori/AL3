@@ -40,7 +40,7 @@ void GameScene::Initialize() {
 
 	player_ = new Player();
 	player_->Initialize();
-	player_->applyMap(*map_);
+	player_->SetMap(map_);
 
 	cameraController_ = new CameraController;
 	cameraController_->Initialize();

@@ -4,6 +4,7 @@
 
 #include <numbers>
 #include <algorithm>
+#include <DebugText.h>
 
 #include "Ease.h"
 #include "Input.h"
@@ -22,13 +23,15 @@ void Player::Initialize() {
 }
 
 void Player::Update() {
-    //KeyInput
+    //movement
     Move();
 
-    //movement
-    worldTransform_.translation_ += velocity_;
+    CollisionMapInfo info;
+    info.velocity = velocity_;
 
-    //matrix calculation
+    MapCollisionDetection(info);
+    ReflectCollide(info);
+
     worldTransform_.UpdateMatrix();
 }
 
@@ -36,10 +39,16 @@ void Player::Draw(const ViewProjection& viewProjection) const {
     model_->Draw(worldTransform_, viewProjection);
 }
 
-void Player::applyMap(const Map& map) {
-	if(const nullable<Vector3> pos = map.getPlayer()){
+void Player::MapCollisionDetection(CollisionMapInfo& info) {
+    isCollideAbove(info);
+    onCollisionCeiling(info);
+}
+
+void Player::SetMap(Map* map) {
+	if(const nullable<Vector3> pos = map->getPlayer()){
         worldTransform_.translation_ = Vector3(pos);
     }
+    map_ = map;
 }
 
 const WorldTransform& Player::GetWorldTransform() const {
@@ -75,17 +84,32 @@ void Player::Move() {
     if(onGround_){
         if (Input::GetInstance()->PushKey(DIK_A) || Input::GetInstance()->PushKey(DIK_D)){
             Vector3 acceleration = {};
-            acceleration.x = static_cast<float>(Input::GetInstance()->PushKey(DIK_D) - Input::GetInstance()->PushKey(DIK_A)) * kAcceleration;
 
-            if (lrDirection_ != (lrDirection_ = acceleration.x < 0 ? LRDirection::LEFT : LRDirection::RIGHT)){
-                turnFirstRotationY_ = worldTransform_.rotation_.y;
-                turnTimer_ = 0.f;
+            if (Input::GetInstance()->PushKey(DIK_A)){
+                if(velocity_.x < 0){
+                    velocity_.x *= (1.f - kAttenuation);
+                }
+
+	            acceleration.x -= kAcceleration;
+
+	            if (lrDirection_ != LRDirection::RIGHT){
+                    lrDirection_ = LRDirection::RIGHT;
+	                turnFirstRotationY_ = worldTransform_.rotation_.y;
+	                turnTimer_ = 0.f;
+	            }
             }
+            else if(Input::GetInstance()->PushKey(DIK_D)){
+                if (0 < velocity_.x){
+                    velocity_.x *= (1.f - kAttenuation);
+                }
 
+                acceleration.x += kAcceleration;
 
-            //brake
-            if (0 < velocity_.x && acceleration.x < 0 || velocity_.x < 0 && 0 < acceleration.x){
-                velocity_.x *= (1.f - kAttenuation);
+                if (lrDirection_ != LRDirection::LEFT){
+                    lrDirection_ = LRDirection::LEFT;
+                    turnFirstRotationY_ = worldTransform_.rotation_.y;
+                    turnTimer_ = 0.f;
+                }
             }
 
             velocity_ += acceleration;
@@ -109,5 +133,65 @@ void Player::Move() {
             velocity_.y = 0;
             onGround_ = true;
         }
+    }
+}
+
+void Player::ReflectCollide(const CollisionMapInfo& info) {
+    worldTransform_.translation_ += info.velocity;
+}
+
+Vector3 Player::CornerPosition(const Vector3& center, Corner corner) {
+    Vector3 offsetTable[kNumCorner] = {
+        Vector3{ -kWidth / 2.f, -kHeight / 2.f, 0},
+        Vector3{ +kWidth / 2.f, -kHeight / 2.f, 0},
+        Vector3{ +kWidth / 2.f, +kHeight / 2.f, 0},
+        Vector3{ -kWidth / 2.f, +kHeight / 2.f, 0},
+    };
+
+    return center + offsetTable[static_cast<uint32_t>(corner)];
+}
+
+bool Player::isCollideAbove(CollisionMapInfo& info) {
+    if (info.velocity.y <= 0)return false;
+
+    std::array<Vector3, 4> positionNew;
+    for (uint32_t i = 0; i < positionNew.size(); ++i){
+        positionNew[i] = CornerPosition(worldTransform_.translation_ + info.velocity, static_cast<Corner>(i));
+    }
+
+    bool hit = false;
+
+    Map::IndexSet indexSet;
+    {
+	    indexSet = map_->GetMapIndexSetByPosition(positionNew[kLeftTop]);
+ 	    MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
+
+    	if(blockType == MapBlockType::BLOCK){
+    		hit = true;
+    	}
+	}
+	{
+	    indexSet = map_->GetMapIndexSetByPosition(positionNew[kRightTop]);
+	    MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
+
+    	if(blockType == MapBlockType::BLOCK){
+    		hit = true;
+    	}
+	}
+
+    if(hit){
+        indexSet = map_->GetMapIndexSetByPosition(positionNew[kLeftTop]);
+        Map::Rect rect = map_->GetRectByIndex(indexSet);
+        info.velocity.y = std::max(0.f, info.velocity.y - (rect.Bottom - positionNew[kLeftTop].y));
+        info.Ceiling = true;
+    }
+
+    return hit;
+}
+
+void Player::onCollisionCeiling(const CollisionMapInfo& info) {
+    if(info.Ceiling){
+        DebugText::GetInstance()->ConsolePrintf("Hit Ceiling\n");
+        velocity_.y = 0;
     }
 }
