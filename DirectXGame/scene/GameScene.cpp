@@ -1,6 +1,7 @@
 #include "GameScene.h"
 #include <cassert>
 
+#include "Enemy.h"
 #include "TextureManager.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
@@ -15,6 +16,9 @@ GameScene::~GameScene() {
 	delete sky_;
 	delete debugCamera_;
 	delete map_;
+	delete player_;
+	delete enemy_;
+	delete cameraController_;
 }
 
 void GameScene::Initialize() {
@@ -42,12 +46,17 @@ void GameScene::Initialize() {
 	player_->Initialize();
 	player_->SetMap(map_);
 
+	enemy_ = new Enemy();
+	enemy_->Initialize();
+
 	cameraController_ = new CameraController;
 	cameraController_->Initialize();
 	cameraController_->SetTarget(player_);
 	CameraController::Rect area = {12, 100 - 12, 6, 6};
 	cameraController_->SetMovableArea(area);
 	cameraController_->Reset();
+	cameraController_->SetTarget(player_);
+
 }
 
 void GameScene::Update() {
@@ -62,6 +71,7 @@ void GameScene::Update() {
 	map_->Update();
 	sky_->Update();
 	player_->Update();
+	enemy_->Update();
 }
 
 void GameScene::Draw() {
@@ -99,6 +109,8 @@ void GameScene::Draw() {
 
 	//player
 	player_->Draw(cameraController_->GetViewProjection());
+
+	enemy_->Draw(cameraController_->GetViewProjection());
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();

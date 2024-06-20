@@ -20,8 +20,8 @@ struct MapData{
 
 	static inline const uint32_t kNumBlockVertical = 20;
 	static inline const uint32_t kNumBlockHorizontal = 100;
-	static inline const float kBlockWidth = 2.f;
-	static inline const float kBlockHeight = 2.f;
+	static inline const float kBlockWidth = 1.f;
+	static inline const float kBlockHeight = 1.f;
 
 class MapChipField{
 private:

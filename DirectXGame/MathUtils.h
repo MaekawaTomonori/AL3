@@ -16,5 +16,7 @@ namespace MathUtils{
     Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate);
 
     Vector3 Lerp(const Vector3& value, const Vector3& destination, float percent);
+
+    float DEG2RAD(float deg);
 };
 
