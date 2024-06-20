@@ -41,7 +41,9 @@ void Player::Draw(const ViewProjection& viewProjection) const {
 
 void Player::MapCollisionDetection(CollisionMapInfo& info) {
     isCollideAbove(info);
+    isCollideUnder(info);
     onCollisionCeiling(info);
+    onCollisionFloor(info);
 }
 
 void Player::SetMap(Map* map) {
@@ -74,12 +76,6 @@ void Player::Move() {
         worldTransform_.rotation_.y = Ease::In::Cubic(turnTimer_/ TURN_TIME) * destinationRotationY;
     }
 
-	bool landing = false;
-    if(velocity_.y < 0){
-	    if(worldTransform_.translation_.y <= 2.f){
-            landing = true;
-	    }
-    }
     //jump
     if(onGround_){
         if (Input::GetInstance()->PushKey(DIK_A) || Input::GetInstance()->PushKey(DIK_D)){
@@ -126,13 +122,6 @@ void Player::Move() {
     }else{
         velocity_ += Vector3(0, -GRAVITY_ACCELERATION, 0);
         velocity_.y = std::max(velocity_.y, -LIMIT_FALL_SPEED);
-
-        if (landing){
-            worldTransform_.translation_.y = 2.f;
-            velocity_.x *= (1.f - kAttenuation);
-            velocity_.y = 0;
-            onGround_ = true;
-        }
     }
 }
 
@@ -189,9 +178,94 @@ bool Player::isCollideAbove(CollisionMapInfo& info) {
     return hit;
 }
 
+bool Player::isCollideUnder(CollisionMapInfo& info) {
+    if (info.velocity.y >= 0)return false;
+
+    std::array<Vector3, 4> positionNew;
+    for (uint32_t i = 0; i < positionNew.size(); ++i){
+        positionNew[i] = CornerPosition(worldTransform_.translation_ + info.velocity, static_cast<Corner>(i));
+    }
+
+    bool hit = false;
+
+    Map::IndexSet indexSet;
+    {
+        indexSet = map_->GetMapIndexSetByPosition(positionNew[kLeftBottom]);
+        MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
+
+        if (blockType == MapBlockType::BLOCK){
+            hit = true;
+        }
+    }
+    {
+        indexSet = map_->GetMapIndexSetByPosition(positionNew[kRightBottom]);
+        MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
+
+        if (blockType == MapBlockType::BLOCK){
+            hit = true;
+        }
+    }
+
+    if (hit){
+        indexSet = map_->GetMapIndexSetByPosition(positionNew[kLeftBottom]);
+        Map::Rect rect = map_->GetRectByIndex(indexSet);
+        info.velocity.y = std::min(0.f, info.velocity.y - (rect.Bottom - positionNew[kLeftBottom].y));
+        info.Landing = true;
+    }else{
+        onGround_ = false;
+    }
+
+    return hit;
+}
+
 void Player::onCollisionCeiling(const CollisionMapInfo& info) {
     if(info.Ceiling){
         DebugText::GetInstance()->ConsolePrintf("Hit Ceiling\n");
         velocity_.y = 0;
+    }
+}
+
+void Player::onCollisionFloor(const CollisionMapInfo& info) {
+    if (info.Landing){
+        onGround_ = true;
+        velocity_.x *= (1.f - kAttenuationLanding);
+        velocity_.y = 0;
+    }
+
+    if(velocity_.y > 0){
+        onGround_ = false;
+    }
+    else{
+        std::array<Vector3, 4> positionNew;
+        for (uint32_t i = 0; i < positionNew.size(); ++i){
+            positionNew[i] = CornerPosition(worldTransform_.translation_ + info.velocity, static_cast<Corner>(i));
+        }
+
+        bool hit = false;
+
+        positionNew[kLeftBottom].y -= kBlankSpace;
+        positionNew[kRightBottom].y -= kBlankSpace;
+
+        Map::IndexSet indexSet;
+        {
+            indexSet = map_->GetMapIndexSetByPosition(positionNew[kLeftBottom]);
+            MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
+
+            if (blockType == MapBlockType::BLOCK){
+                hit = true;
+            }
+        }
+        {
+            indexSet = map_->GetMapIndexSetByPosition(positionNew[kRightBottom]);
+            MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
+
+            if (blockType == MapBlockType::BLOCK){
+                hit = true;
+            }
+        }
+
+        if(!hit){
+            onGround_ = false; 
+        }
     }
 }

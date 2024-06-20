@@ -12,6 +12,7 @@ class Player{
 	struct CollisionMapInfo{
 		bool Ceiling = false;
 		bool Landing = false;
+		bool Wall = false;
 		bool Collide = false;
 		Vector3 velocity;
 	};
@@ -39,6 +40,7 @@ public:
 private:
 	static inline const float kAcceleration = 0.1f;
 	static inline const float kAttenuation = 0.3f;
+	static inline const float kAttenuationLanding = 0.3f;
 	static inline const float kLimitRunSpeed = 1.f;
 
 	static inline const float TURN_TIME = 0.3f;
@@ -46,6 +48,8 @@ private:
 	static inline const float GRAVITY_ACCELERATION = 0.01f;
 	static inline const float LIMIT_FALL_SPEED = 4.9f;
 	static inline const float JUMP_ACCELERATION = 0.6f;
+
+	static inline const float kBlankSpace = 0.01f;
 
 	static inline const float kWidth = 0.8f;
 	static inline const float kHeight = 0.8f;
@@ -70,6 +74,11 @@ private:
 
 	void MapCollisionDetection(CollisionMapInfo& info);
 
+	//hantei
 	bool isCollideAbove(CollisionMapInfo& info);
+	bool isCollideUnder(CollisionMapInfo& info);
+
+	//true ji no shori
 	void onCollisionCeiling(const CollisionMapInfo& info);
+	void onCollisionFloor(const CollisionMapInfo& info);
 };
