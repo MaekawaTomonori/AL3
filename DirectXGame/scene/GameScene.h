@@ -10,6 +10,7 @@
 #include "Skydome.h"
 #include "ViewProjection.h"
 
+class Enemy;
 class Player;
 
 /// <summary>
@@ -63,6 +64,9 @@ private: // メンバ変数
 
 	//Player
 	Player* player_ = nullptr;
+
+	//Enemy
+	Enemy* enemy_ = nullptr;
 
 	//Sky
 	Skydome* sky_ = nullptr;

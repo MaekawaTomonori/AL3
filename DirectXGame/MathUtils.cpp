@@ -1,6 +1,8 @@
 #include "MathUtils.h"
 #include <cmath>
 #include <cassert>
+#include <numbers>
+
 #include "Vector3.h"
 
 
@@ -71,4 +73,8 @@ Matrix4x4 MathUtils::MakeAffineMatrix(const Vector3& scale, const Vector3& rotat
 
 Vector3 MathUtils::Lerp(const Vector3& value, const Vector3& destination, float percent) {
     return value + (destination - value) * percent;
+}
+
+float MathUtils::DEG2RAD(float deg) {
+    return deg /360.f * 2 * std::numbers::pi_v<float>;
 }
