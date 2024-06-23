@@ -20,6 +20,7 @@ void Player::Initialize() {
     model_ = Model::CreateFromOBJ("player");
     worldTransform_.Initialize();
     worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.f;
+    velocity_ = {};
 }
 
 void Player::Update() {
@@ -143,7 +144,7 @@ Vector3 Player::CornerPosition(const Vector3& center, Corner corner) {
 bool Player::isCollideAbove(CollisionMapInfo& info) {
     if (info.velocity.y <= 0)return false;
 
-    std::array<Vector3, 4> positionNew;
+    std::array<Vector3, kNumCorner> positionNew;
     for (uint32_t i = 0; i < positionNew.size(); ++i){
         positionNew[i] = CornerPosition(worldTransform_.translation_ + info.velocity, static_cast<Corner>(i));
     }
@@ -171,7 +172,7 @@ bool Player::isCollideAbove(CollisionMapInfo& info) {
     if(hit){
         indexSet = map_->GetMapIndexSetByPosition(positionNew[kLeftTop]);
         Map::Rect rect = map_->GetRectByIndex(indexSet);
-        info.velocity.y = std::max(0.f, info.velocity.y - (rect.Bottom - positionNew[kLeftTop].y));
+        info.velocity.y = std::max(0.f, (rect.Bottom - worldTransform_.translation_.y) - kHeight / 2.f + kBlankSpace);
         info.Ceiling = true;
     }
 
@@ -181,7 +182,7 @@ bool Player::isCollideAbove(CollisionMapInfo& info) {
 bool Player::isCollideUnder(CollisionMapInfo& info) {
     if (info.velocity.y >= 0)return false;
 
-    std::array<Vector3, 4> positionNew;
+    std::array<Vector3, kNumCorner> positionNew;
     for (uint32_t i = 0; i < positionNew.size(); ++i){
         positionNew[i] = CornerPosition(worldTransform_.translation_ + info.velocity, static_cast<Corner>(i));
     }
@@ -190,7 +191,7 @@ bool Player::isCollideUnder(CollisionMapInfo& info) {
 
     Map::IndexSet indexSet;
     {
-        indexSet = map_->GetMapIndexSetByPosition(positionNew[kLeftBottom]);
+        indexSet = map_->GetMapIndexSetByPosition(positionNew[kLeftBottom] + Vector3(0, -0.8f, 0));
         MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
 
         if (blockType == MapBlockType::BLOCK){
@@ -198,7 +199,7 @@ bool Player::isCollideUnder(CollisionMapInfo& info) {
         }
     }
     {
-        indexSet = map_->GetMapIndexSetByPosition(positionNew[kRightBottom]);
+        indexSet = map_->GetMapIndexSetByPosition(positionNew[kRightBottom] + Vector3(0, -0.8f, 0));
         MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
 
         if (blockType == MapBlockType::BLOCK){
@@ -207,15 +208,33 @@ bool Player::isCollideUnder(CollisionMapInfo& info) {
     }
 
     if (hit){
-        indexSet = map_->GetMapIndexSetByPosition(positionNew[kLeftBottom]);
+        indexSet = map_->GetMapIndexSetByPosition((positionNew[kLeftBottom] + positionNew[kRightBottom]) / 2.f);
         Map::Rect rect = map_->GetRectByIndex(indexSet);
-        info.velocity.y = std::min(0.f, info.velocity.y - (rect.Bottom - positionNew[kLeftBottom].y));
+        info.velocity.y = std::min(0.f, rect.Top - worldTransform_.translation_.y + kHeight /2 + kBlankSpace) ;
         info.Landing = true;
     }else{
         onGround_ = false;
     }
 
     return hit;
+}
+
+bool Player::isCollideRight(CollisionMapInfo& info) {
+    if (info.velocity.x <= 0) return false;
+
+    std::array<Vector3, kNumCorner> positionNew;
+    for (uint32_t i = 0; i < positionNew.size(); i++){
+        positionNew[i] = CornerPosition(worldTransform_.translation_ + info.velocity, static_cast<Corner>(i));
+    }
+
+    bool hit = false;
+}
+
+bool Player::isCollideLeft(CollisionMapInfo& info) {
+
+}
+
+void Player::onCollisionWall(const CollisionMapInfo& info) {
 }
 
 void Player::onCollisionCeiling(const CollisionMapInfo& info) {
@@ -225,47 +244,51 @@ void Player::onCollisionCeiling(const CollisionMapInfo& info) {
     }
 }
 
-void Player::onCollisionFloor(const CollisionMapInfo& info) {
-    if (info.Landing){
-        onGround_ = true;
-        velocity_.x *= (1.f - kAttenuationLanding);
-        velocity_.y = 0;
-    }
+void Player::onCollisionFloor(CollisionMapInfo& info) {
+    if (onGround_){
+		if(velocity_.y > 0){
+	        onGround_ = false;
+	    }
+	    else{
+	        std::array<Vector3, kNumCorner> positionNew;
+	        for (uint32_t i = 0; i < positionNew.size(); ++i){
+	            positionNew[i] = CornerPosition(worldTransform_.translation_ + info.velocity, static_cast<Corner>(i));
+	        }
 
-    if(velocity_.y > 0){
-        onGround_ = false;
+	        bool hit = false;
+
+	        positionNew[kLeftBottom].y -= 0.8f;
+	        positionNew[kRightBottom].y -= 0.8f;
+
+	        Map::IndexSet indexSet;
+	        {
+	            indexSet = map_->GetMapIndexSetByPosition(positionNew[kLeftBottom]);
+	            MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
+
+	            if (blockType == MapBlockType::BLOCK){
+	                hit = true;
+	            }
+	        }
+	        {
+	            indexSet = map_->GetMapIndexSetByPosition(positionNew[kRightBottom]);
+	            MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
+
+	            if (blockType == MapBlockType::BLOCK){
+	                hit = true;
+	            }
+	        }
+
+	        if(!hit){
+	            onGround_ = false; 
+	        }
+	    }
     }
     else{
-        std::array<Vector3, 4> positionNew;
-        for (uint32_t i = 0; i < positionNew.size(); ++i){
-            positionNew[i] = CornerPosition(worldTransform_.translation_ + info.velocity, static_cast<Corner>(i));
-        }
-
-        bool hit = false;
-
-        positionNew[kLeftBottom].y -= kBlankSpace;
-        positionNew[kRightBottom].y -= kBlankSpace;
-
-        Map::IndexSet indexSet;
-        {
-            indexSet = map_->GetMapIndexSetByPosition(positionNew[kLeftBottom]);
-            MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
-
-            if (blockType == MapBlockType::BLOCK){
-                hit = true;
-            }
-        }
-        {
-            indexSet = map_->GetMapIndexSetByPosition(positionNew[kRightBottom]);
-            MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
-
-            if (blockType == MapBlockType::BLOCK){
-                hit = true;
-            }
-        }
-
-        if(!hit){
-            onGround_ = false; 
-        }
+	    if (info.Landing){
+	        onGround_ = true;
+            info.Landing = false;
+	        velocity_.x *= (1.f - kAttenuationLanding);
+			velocity_.y = 0;
+		}
     }
 }

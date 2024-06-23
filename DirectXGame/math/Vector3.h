@@ -37,4 +37,12 @@ struct Vector3 final {
 			z * other
 		};
 	}
+
+	Vector3 operator/(const float& other) const {
+		return Vector3 {
+			x / other,
+			y / other,
+			z / other
+		};
+	}
 };
