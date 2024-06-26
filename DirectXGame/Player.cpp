@@ -218,6 +218,31 @@ bool Player::isCollideUnder(CollisionMapInfo& info) {
     return hit;
 }
 
+bool Player::isCollideRight(CollisionMapInfo& info) {
+    if (info.velocity.x <= 0) return false;
+
+    std::array<Vector3, kNumCorner> positionNew;
+    for (uint32_t i = 0; i < positionNew.size(); i++){
+        positionNew[i] = CornerPosition(worldTransform_.translation_ + info.velocity, static_cast<Corner>(i));
+    }
+
+    bool hit = false;
+
+    {
+        Map::IndexSet indexSet = map_->GetMapIndexSetByPosition(positionNew[kRightTop]);
+        MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
+    }
+
+    return hit;
+}
+
+bool Player::isCollideLeft(CollisionMapInfo& info) {
+    return false;
+}
+
+void Player::onCollisionWall(const CollisionMapInfo& info) {
+}
+
 void Player::onCollisionCeiling(const CollisionMapInfo& info) {
     if(info.Ceiling){
         DebugText::GetInstance()->ConsolePrintf("Hit Ceiling\n");
