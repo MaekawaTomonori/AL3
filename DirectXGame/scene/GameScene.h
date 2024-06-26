@@ -44,6 +44,9 @@ public: // メンバ関数
 	/// </summary>
 	void Draw();
 
+private: // 定数
+	static const int32_t kEnemyCount = 10;
+
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
@@ -58,6 +61,7 @@ private: // メンバ変数
 
 	//model
 	Model* model_ = nullptr;
+	Model* enemyModel_ = nullptr;
 
 	//map
 	Map* map_ = nullptr;
@@ -66,7 +70,7 @@ private: // メンバ変数
 	Player* player_ = nullptr;
 
 	//Enemy
-	Enemy* enemy_ = nullptr;
+	std::list<Enemy*> enemies_;
 
 	//Sky
 	Skydome* sky_ = nullptr;
@@ -75,4 +79,9 @@ private: // メンバ変数
 	bool isDebugCameraActive_ = false;
 	DebugCamera* debugCamera_ = nullptr;
 
+private: // メンバ関数
+	/// <summary>
+	/// 全ての衝突判定を行う
+	/// </summary>
+	void CheckAllCollisions();
 };

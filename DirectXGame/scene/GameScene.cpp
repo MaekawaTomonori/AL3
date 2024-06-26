@@ -1,6 +1,7 @@
 #include "GameScene.h"
 #include <cassert>
 
+#include "Collision.h"
 #include "Enemy.h"
 #include "TextureManager.h"
 #include "ViewProjection.h"
@@ -17,11 +18,15 @@ GameScene::~GameScene() {
 	delete debugCamera_;
 	delete map_;
 	delete player_;
-	delete enemy_;
+	for (auto enemy : enemies_){
+		delete enemy;
+	}
+	enemies_.clear();
 	delete cameraController_;
 }
 
 void GameScene::Initialize() {
+	srand(static_cast<unsigned int>(time(nullptr)));
 
 	dxCommon_ = DirectXCommon::GetInstance();
 	input_ = Input::GetInstance();
@@ -46,8 +51,14 @@ void GameScene::Initialize() {
 	player_->Initialize();
 	player_->SetMap(map_);
 
-	enemy_ = new Enemy();
-	enemy_->Initialize();
+	enemyModel_ = Model::CreateFromOBJ("enemy");
+	for(int32_t i = 0; i < kEnemyCount; ++i){
+		Enemy* enemy = new Enemy;
+		Vector3 pos = Vector3::Random() * 10.f;
+		enemy->Initialize(enemyModel_, pos);
+
+		enemies_.push_back(enemy);
+	}
 
 	cameraController_ = new CameraController;
 	cameraController_->Initialize();
@@ -71,7 +82,12 @@ void GameScene::Update() {
 	map_->Update();
 	sky_->Update();
 	player_->Update();
-	enemy_->Update();
+
+	for (auto enemy : enemies_){
+		enemy->Update();
+	}
+
+	CheckAllCollisions();
 }
 
 void GameScene::Draw() {
@@ -110,7 +126,9 @@ void GameScene::Draw() {
 	//player
 	player_->Draw(cameraController_->GetViewProjection());
 
-	enemy_->Draw(cameraController_->GetViewProjection());
+	for (auto enemy : enemies_){
+		enemy->Draw(cameraController_->GetViewProjection());
+	}
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
@@ -128,4 +146,16 @@ void GameScene::Draw() {
 	Sprite::PostDraw();
 
 #pragma endregion
+}
+
+void GameScene::CheckAllCollisions() {
+	// プレイヤーと敵の当たり判定
+	AABB playerAABB = player_->GetAABB();
+
+	for (auto enemy : enemies_){
+		if(Collision::IsCollision(playerAABB, enemy->GetAABB())){
+			player_->OnCollision(enemy);
+			enemy->OnCollision(player_);
+		}
+	}
 }

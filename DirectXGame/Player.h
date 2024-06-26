@@ -1,6 +1,9 @@
 #pragma once
+#include "AABB.h"
 #include "WorldTransform.h"
 #include "Model.h"
+
+class Enemy;
 
 enum class LRDirection{
 	RIGHT,
@@ -36,6 +39,11 @@ public:
 
 	const WorldTransform& GetWorldTransform() const;
 	const Vector3& GetVelocity() const;
+
+	Vector3 GetWorldPosition() const;
+	AABB GetAABB() const;
+
+	void OnCollision(Enemy* enemy);
 
 private:
 	static inline const float kAcceleration = 0.1f;
@@ -77,6 +85,9 @@ private:
 	//hantei
 	bool isCollideAbove(CollisionMapInfo& info);
 	bool isCollideUnder(CollisionMapInfo& info);
+	bool isCollideRight(CollisionMapInfo& info);
+	bool isCollideLeft(CollisionMapInfo& info);
+	void onCollisionWall(const CollisionMapInfo& info);
 
 	//true ji no shori
 	void onCollisionCeiling(const CollisionMapInfo& info);

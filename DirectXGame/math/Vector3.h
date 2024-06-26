@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdlib>
 
 /// <summary>
 /// 3次元ベクトル
@@ -35,6 +36,14 @@ struct Vector3 final {
 			x * other,
 			y * other,
 			z * other
+		};
+	}
+
+	static Vector3 Random() {
+		return Vector3 {
+			static_cast<float>(rand() % 100) / 100.f,
+			static_cast<float>(rand() % 100) / 100.f,
+			static_cast<float>(rand() % 100) / 100.f
 		};
 	}
 };

@@ -57,6 +57,27 @@ const WorldTransform& Player::GetWorldTransform() const {
 	return worldTransform_;
 }
 
+Vector3 Player::GetWorldPosition() const {
+    return Vector3 {
+        worldTransform_.matWorld_.m[3][0],
+        worldTransform_.matWorld_.m[3][1],
+        worldTransform_.matWorld_.m[3][2]
+    };
+}
+
+AABB Player::GetAABB() const {
+    Vector3 worldPos = GetWorldPosition();
+
+    return AABB {
+    {worldPos.x - kWidth / 2.f, worldPos.y - kHeight / 2.f, worldPos.z - kWidth / 2.f},
+        {worldPos.x + kWidth / 2.f, worldPos.y + kHeight / 2.f, worldPos.z + kWidth / 2.f}
+    };
+}
+
+void Player::OnCollision(Enemy* enemy) {
+    (void)enemy;
+}
+
 const Vector3& Player::GetVelocity() const {
 	return velocity_;
 }
@@ -231,16 +252,20 @@ bool Player::isCollideRight(CollisionMapInfo& info) {
     {
         Map::IndexSet indexSet = map_->GetMapIndexSetByPosition(positionNew[kRightTop]);
         MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
+
+        (void)blockType;
     }
 
     return hit;
 }
 
 bool Player::isCollideLeft(CollisionMapInfo& info) {
+    (void)info;
     return false;
 }
 
 void Player::onCollisionWall(const CollisionMapInfo& info) {
+    (void)info;
 }
 
 void Player::onCollisionCeiling(const CollisionMapInfo& info) {

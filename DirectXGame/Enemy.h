@@ -1,34 +1,45 @@
 #pragma once
+#include "AABB.h"
 #include "WorldTransform.h"
 
 
+class Player;
 class Model;
 class Map;
 class ViewProjection;
 
 class Enemy{
 public:
-Enemy();
+	Enemy();
 
-void Initialize();
-void Update();
-void Draw(const ViewProjection& viewProjection);
+	void Initialize(Model* model, Vector3 pos = Vector3());
+	void Update();
+	void Draw(const ViewProjection& viewProjection);
 
-void SetMap(Map* map);
+	void SetMap(Map* map);
 
-private:
-static inline const float kWalkSpeed = 0.03f;
+	Vector3 GetWorldPosition() const;
+	AABB GetAABB() const;
 
-static inline const float kWalkMotionAngleStart = 0.f;
-static inline const float kWalkMotionAngleEnd = 45.f;
+	void OnCollision(Player* player);
 
-static inline const float kWalkMotionTime = 0.5f;
+private: //
+	static inline const float kWalkSpeed = 0.03f;
 
-WorldTransform worldTransform_;
-Model* model_;
+	static inline const float kWalkMotionAngleStart = 0.f;
+	static inline const float kWalkMotionAngleEnd = 45.f;
 
-Vector3 velocity_;
+	static inline const float kWalkMotionTime = 0.5f;
 
-float walkMotionTimer_ = 0.f;
+	static inline const float kWidth = 1.f;
+	static inline const float kHeight = 1.f;
+
+private: // 
+	WorldTransform worldTransform_;
+	Model* model_;
+
+	Vector3 velocity_;
+
+	float walkMotionTimer_ = 0.f;
 };
 
