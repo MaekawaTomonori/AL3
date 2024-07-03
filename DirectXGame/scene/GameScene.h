@@ -83,5 +83,5 @@ private: // メンバ関数
 	/// <summary>
 	/// 全ての衝突判定を行う
 	/// </summary>
-	void CheckAllCollisions();
+	void CheckAllCollisions() const;
 };

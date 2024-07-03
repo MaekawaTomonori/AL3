@@ -148,7 +148,7 @@ void GameScene::Draw() {
 #pragma endregion
 }
 
-void GameScene::CheckAllCollisions() {
+void GameScene::CheckAllCollisions() const {
 	// プレイヤーと敵の当たり判定
 	AABB playerAABB = player_->GetAABB();
 
