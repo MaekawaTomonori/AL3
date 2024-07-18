@@ -26,11 +26,24 @@ void Player::Update() {
     //movement
     Move();
 
-    CollisionMapInfo info;
-    info.velocity = velocity_;
+    info_.velocity = velocity_;
 
-    MapCollisionDetection(info);
-    ReflectCollide(info);
+    MapCollisionDetection(info_);
+
+
+    if (0 < turnTimer_){
+        turnTimer_ += 1.f / 60.f;
+
+
+        float destinationRotationYTable[] = {
+            std::numbers::pi_v<float> / 2.f,
+            std::numbers::pi_v<float> *3.f / 2.f
+        };
+
+        //未完成・不完全
+        float destinationRotationY = destinationRotationYTable[static_cast<uint32_t>(lrDirection_)];
+        worldTransform_.rotation_.y = Ease::In::Cubic(turnTimer_ / TURN_TIME) * destinationRotationY;
+    }
 
     worldTransform_.UpdateMatrix();
 }
@@ -42,6 +55,9 @@ void Player::Draw(const ViewProjection& viewProjection) const {
 void Player::MapCollisionDetection(CollisionMapInfo& info) {
     isCollideAbove(info);
     isCollideUnder(info);
+
+    ReflectCollide(info);
+
     onCollisionCeiling(info);
     onCollisionFloor(info);
 }
@@ -85,64 +101,55 @@ const Vector3& Player::GetVelocity() const {
 }
 
 void Player::Move() {
-    if(0 < turnTimer_){
-        turnTimer_ += 1.f / 60.f;
-
-
-        float destinationRotationYTable[] = {
-            std::numbers::pi_v<float> / 2.f,
-            std::numbers::pi_v<float> *3.f / 2.f
-        };
-
-        //未完成・不完全
-		float destinationRotationY = destinationRotationYTable[static_cast<uint32_t>(lrDirection_)];
-        worldTransform_.rotation_.y = Ease::In::Cubic(turnTimer_/ TURN_TIME) * destinationRotationY;
-    }
-
     //jump
     if(onGround_){
-        if (Input::GetInstance()->PushKey(DIK_A) || Input::GetInstance()->PushKey(DIK_D)){
+        Input* input = Input::GetInstance();
+        if (input->PushKey(DIK_A) || input->PushKey(DIK_D)){
             Vector3 acceleration = {};
 
-            if (Input::GetInstance()->PushKey(DIK_A)){
-                if(velocity_.x < 0){
-                    velocity_.x *= (1.f - kAttenuation);
-                }
-
-	            acceleration.x -= kAcceleration;
-
-	            if (lrDirection_ != LRDirection::RIGHT){
-                    lrDirection_ = LRDirection::RIGHT;
-	                turnFirstRotationY_ = worldTransform_.rotation_.y;
-	                turnTimer_ = 0.f;
-	            }
-            }
-            else if(Input::GetInstance()->PushKey(DIK_D)){
-                if (0 < velocity_.x){
+        	if(input->PushKey(DIK_D)){
+                if (velocity_.x < 0){
                     velocity_.x *= (1.f - kAttenuation);
                 }
 
                 acceleration.x += kAcceleration;
 
-                if (lrDirection_ != LRDirection::LEFT){
-                    lrDirection_ = LRDirection::LEFT;
+                if (lrDirection_ != LRDirection::RIGHT){
+                    lrDirection_ = LRDirection::RIGHT;
                     turnFirstRotationY_ = worldTransform_.rotation_.y;
                     turnTimer_ = 0.f;
                 }
+            } else if (input->PushKey(DIK_A)){
+                if(0 < velocity_.x){
+                    velocity_.x *= (1.f - kAttenuation);
+                }
+
+	            acceleration.x -= kAcceleration;
+
+	            if (lrDirection_ != LRDirection::LEFT){
+                    lrDirection_ = LRDirection::LEFT;
+	                turnFirstRotationY_ = worldTransform_.rotation_.y;
+	                turnTimer_ = 0.f;
+	            }
             }
 
             velocity_ += acceleration;
 
             velocity_.x = std::clamp(velocity_.x, -kLimitRunSpeed, kLimitRunSpeed);
+
+            if(0.01f <= acceleration.x || acceleration.x <= -0.01f){
+                acceleration.x = 0;
+            }
+
         } else{
             velocity_.x *= (1.f - kAttenuation);
         }
 
+        //Jump
 	    if(Input::GetInstance()->PushKey(DIK_SPACE)){
             velocity_ += Vector3(0, JUMP_ACCELERATION, 0);
-            onGround_ = false;
 	    }
-    }else{
+    } else{
         velocity_ += Vector3(0, -GRAVITY_ACCELERATION, 0);
         velocity_.y = std::max(velocity_.y, -LIMIT_FALL_SPEED);
     }
@@ -213,7 +220,7 @@ bool Player::isCollideUnder(CollisionMapInfo& info) {
 
     Map::IndexSet indexSet;
     {
-        indexSet = map_->GetMapIndexSetByPosition(positionNew[kLeftBottom]);
+        indexSet = map_->GetMapIndexSetByPosition(positionNew[kLeftBottom] + Vector3(0, -kBlankSpace, 0));
         MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
 
         if (blockType == MapBlockType::BLOCK){
@@ -221,7 +228,7 @@ bool Player::isCollideUnder(CollisionMapInfo& info) {
         }
     }
     {
-        indexSet = map_->GetMapIndexSetByPosition(positionNew[kRightBottom]);
+        indexSet = map_->GetMapIndexSetByPosition(positionNew[kRightBottom] + Vector3(0, -kBlankSpace, 0));
         MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
 
         if (blockType == MapBlockType::BLOCK){
@@ -274,50 +281,55 @@ void Player::onCollisionCeiling(const CollisionMapInfo& info) {
     if(info.Ceiling){
         DebugText::GetInstance()->ConsolePrintf("Hit Ceiling\n");
         velocity_.y = 0;
+        info_.Ceiling = false;
     }
 }
 
 void Player::onCollisionFloor(const CollisionMapInfo& info) {
-    if (info.Landing){
-        onGround_ = true;
-        velocity_.x *= (1.f - kAttenuationLanding);
-        velocity_.y = 0;
-    }
+    if (onGround_){
+        if (velocity_.y > 0){
+            onGround_ = false;
+        } else{
+            std::array<Vector3, 4> positionNew;
+            for (uint32_t i = 0; i < positionNew.size(); ++i){
+                positionNew[i] = CornerPosition(worldTransform_.translation_ + info.velocity, static_cast<Corner>(i));
+            }
 
-    if(velocity_.y > 0){
-        onGround_ = false;
-    }
-    else{
-        std::array<Vector3, 4> positionNew;
-        for (uint32_t i = 0; i < positionNew.size(); ++i){
-            positionNew[i] = CornerPosition(worldTransform_.translation_ + info.velocity, static_cast<Corner>(i));
-        }
+            bool hit = false;
 
-        bool hit = false;
+            positionNew[kLeftBottom].y -= kBlankSpace;
+            positionNew[kRightBottom].y -= kBlankSpace;
 
-        positionNew[kLeftBottom].y -= kBlankSpace;
-        positionNew[kRightBottom].y -= kBlankSpace;
+            Map::IndexSet indexSet;
+            {
+                indexSet = map_->GetMapIndexSetByPosition(positionNew[kLeftBottom]);
+                MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
 
-        Map::IndexSet indexSet;
-        {
-            indexSet = map_->GetMapIndexSetByPosition(positionNew[kLeftBottom]);
-            MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
+                if (blockType == MapBlockType::BLOCK){
+                    hit = true;
+                }
+            }
+            {
+                indexSet = map_->GetMapIndexSetByPosition(positionNew[kRightBottom]);
+                MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
 
-            if (blockType == MapBlockType::BLOCK){
-                hit = true;
+                if (blockType == MapBlockType::BLOCK){
+                    hit = true;
+                }
+            }
+
+            if (!hit){
+                onGround_ = false;
             }
         }
-        {
-            indexSet = map_->GetMapIndexSetByPosition(positionNew[kRightBottom]);
-            MapBlockType blockType = map_->GetMapBlockTypeByIndex(indexSet);
+    }else{
+	    if(info.Landing) {
+            onGround_ = true;
 
-            if (blockType == MapBlockType::BLOCK){
-                hit = true;
-            }
-        }
+            velocity_.x *= (1.f - kAttenuationLanding);
+            velocity_.y = 0;
 
-        if(!hit){
-            onGround_ = false; 
-        }
+            info_.Landing = false;
+	    }
     }
 }
