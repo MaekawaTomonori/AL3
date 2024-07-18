@@ -91,6 +91,12 @@ MapData MapChipField::getMapData() const {
 Map::~Map() {
     delete field_;
     delete blockModel_;
+    for(auto line : worldTransforms_){
+	    for(auto wt : line){
+            delete wt;
+	    }
+    }
+    worldTransforms_.clear();
 }
 
 void Map::Initialize() {
