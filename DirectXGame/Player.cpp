@@ -77,6 +77,7 @@ AABB Player::GetAABB() const {
 void Player::OnCollision(Enemy* enemy) {
     (void)enemy;
     velocity_ += {0, 0.1f, 0};
+	//death flag
 }
 
 const Vector3& Player::GetVelocity() const {

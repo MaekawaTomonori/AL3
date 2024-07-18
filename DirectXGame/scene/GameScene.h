@@ -10,6 +10,11 @@
 #include "Skydome.h"
 #include "ViewProjection.h"
 
+enum class Phase{
+	kPlay,
+	kDeath
+};
+
 class Enemy;
 class Player;
 
@@ -44,6 +49,13 @@ public: // メンバ関数
 	/// </summary>
 	void Draw();
 
+	bool IsDead() const{
+		return isDead;
+	}
+
+	bool IsFinished() const {
+		return finished_;
+	}
 private: // 定数
 	static const int32_t kEnemyCount = 10;
 
@@ -64,24 +76,33 @@ private: // メンバ変数
 	Model* enemyModel_ = nullptr;
 
 	//map
-	Map* map_ = nullptr;
+	std::shared_ptr<Map> map_ = nullptr;
 
 	//Player
-	Player* player_ = nullptr;
+	std::shared_ptr<Player> player_ = nullptr;
 
 	//Enemy
-	std::list<Enemy*> enemies_;
+	std::list<std::shared_ptr<Enemy>> enemies_;
 
 	//Sky
-	Skydome* sky_ = nullptr;
+	std::unique_ptr<Skydome> sky_ = nullptr;
 
 	//Debug Camera
 	bool isDebugCameraActive_ = false;
 	DebugCamera* debugCamera_ = nullptr;
+
+	//GameScene Phase
+	Phase phase_;
+
+	bool isDead = false;
+
+	bool finished_ = false;
 
 private: // メンバ関数
 	/// <summary>
 	/// 全ての衝突判定を行う
 	/// </summary>
 	void CheckAllCollisions() const;
+
+	void ChangePhase();
 };

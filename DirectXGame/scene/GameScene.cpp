@@ -14,14 +14,9 @@ GameScene::GameScene() {}
 
 GameScene::~GameScene() {
 	delete model_;
-	delete sky_;
 	delete debugCamera_;
-	delete map_;
-	delete player_;
-	for (auto enemy : enemies_){
-		delete enemy;
-	}
 	enemies_.clear();
+	delete enemyModel_;
 	delete cameraController_;
 }
 
@@ -41,19 +36,19 @@ void GameScene::Initialize() {
 
 	debugCamera_ = new DebugCamera(1280, 720);
 
-	sky_ = new Skydome();
+	sky_ = std::make_unique<Skydome>();
 	sky_->Initialize();
 
-	map_ = new Map();
+	map_ = std::make_shared<Map>();
 	map_->Initialize();
 
-	player_ = new Player();
+	player_ = std::make_shared<Player>();
 	player_->Initialize();
-	player_->SetMap(map_);
+	player_->SetMap(map_.get());
 
 	enemyModel_ = Model::CreateFromOBJ("enemy");
 	for(int32_t i = 0; i < kEnemyCount; ++i){
-		Enemy* enemy = new Enemy;
+		std::shared_ptr<Enemy> enemy = std::make_shared<Enemy>();
 		Vector3 pos = Vector3::Random() * 10.f;
 		enemy->Initialize(enemyModel_, pos);
 
@@ -62,12 +57,13 @@ void GameScene::Initialize() {
 
 	cameraController_ = new CameraController;
 	cameraController_->Initialize();
-	cameraController_->SetTarget(player_);
+	cameraController_->SetTarget(player_.get());
 	CameraController::Rect area = {12, 100 - 12, 6, 6};
 	cameraController_->SetMovableArea(area);
 	cameraController_->Reset();
-	cameraController_->SetTarget(player_);
+	cameraController_->SetTarget(player_.get());
 
+	phase_ = Phase::kPlay;
 }
 
 void GameScene::Update() {
@@ -77,17 +73,35 @@ void GameScene::Update() {
 		//isDebugCameraActive_ = !isDebugCameraActive_;
 	//}
 #endif
-	cameraController_->Update();
 	
 	map_->Update();
 	sky_->Update();
-	player_->Update();
 
-	for (auto enemy : enemies_){
-		enemy->Update();
+	switch (phase_){
+	case Phase::kPlay:
+		cameraController_->Update();
+		player_->Update();
+
+		for (auto enemy : enemies_){
+			enemy->Update();
+		}
+
+		CheckAllCollisions();
+
+		if(isDead){
+			ChangePhase();
+			const Vector3& deathParticlePos = player_->GetWorldPosition();
+
+			//deathparticle
+			(void)deathParticlePos;
+		}
+		break;
+	case Phase::kDeath:
+		//deathparticleFinished
+		finished_ = true;
+		
+		break;
 	}
-
-	CheckAllCollisions();
 }
 
 void GameScene::Draw() {
@@ -126,7 +140,7 @@ void GameScene::Draw() {
 	//player
 	player_->Draw(cameraController_->GetViewProjection());
 
-	for (auto enemy : enemies_){
+	for (const auto& enemy : enemies_){
 		enemy->Draw(cameraController_->GetViewProjection());
 	}
 
@@ -152,10 +166,21 @@ void GameScene::CheckAllCollisions() const {
 	// プレイヤーと敵の当たり判定
 	AABB playerAABB = player_->GetAABB();
 
-	for (auto enemy : enemies_){
+	for (const auto& enemy : enemies_){
 		if(Collision::IsCollision(playerAABB, enemy->GetAABB())){
-			player_->OnCollision(enemy);
-			enemy->OnCollision(player_);
+			player_->OnCollision(enemy.get());
+			enemy->OnCollision(player_.get());
 		}
+	}
+}
+
+void GameScene::ChangePhase() {
+	switch (phase_){
+	case Phase::kPlay:
+		phase_ = Phase::kDeath;
+		break;
+	case Phase::kDeath:
+	default:
+		break;
 	}
 }
