@@ -59,8 +59,8 @@ private:
 
 	static inline const float kBlankSpace = 0.01f;
 
-	static inline const float kWidth = 1.8f;
-	static inline const float kHeight = 1.8f;
+	static inline const float kWidth = 0.8f;
+	static inline const float kHeight = 0.8f;
 
 private:
 	Map* map_ = nullptr;
