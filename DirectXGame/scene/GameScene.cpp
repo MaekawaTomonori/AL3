@@ -19,6 +19,7 @@ GameScene::~GameScene() {
 
 	delete model_;
 	delete sky_;
+	delete player_;
 	delete debugCamera_;
 }
 
