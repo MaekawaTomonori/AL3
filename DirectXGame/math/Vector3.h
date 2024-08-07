@@ -13,4 +13,20 @@ struct Vector3 final {
 		y += v.y;
 		z += v.z;
 	}
+
+	Vector3 operator+(const Vector3& vector3) const {
+		return { x + vector3.x, y + vector3.y, z + vector3.z };
+	}
+
+	Vector3 operator-(const Vector3& vector3) const {
+		return { x - vector3.x, y - vector3.y, z - vector3.z };
+	}
+
+	Vector3 operator*(const Vector3& vector3) const {
+		return { x * vector3.x, y * vector3.y, z * vector3.z };
+	}
+
+	Vector3 operator*(const float& other) const {
+		return { this->x * other, this->y * other, this->z * other };
+	}
 };

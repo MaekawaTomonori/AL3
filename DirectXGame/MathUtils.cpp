@@ -4,6 +4,10 @@
 #include "Vector3.h"
 
 
+Vector3 MathUtils::Lerp(const Vector3& a, const Vector3& b, float t) {
+    return a + (b - a) * t;
+}
+
 Matrix4x4 MathUtils::MakeTranslateMatrix(const Vector3& velocity) {
     return Matrix4x4 {
         1, 0, 0, 0,

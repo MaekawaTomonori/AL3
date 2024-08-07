@@ -7,6 +7,8 @@
 #include "ViewProjection.h"
 #include "WorldTransform.h"
 
+#include "CameraController.h"
+
 GameScene::GameScene() {}
 
 GameScene::~GameScene() {
@@ -23,6 +25,7 @@ GameScene::~GameScene() {
 	delete player_;
 	delete debugCamera_;
 	delete mapChipField_;
+	delete cameraController_;
 }
 
 void GameScene::Initialize() {
@@ -35,8 +38,6 @@ void GameScene::Initialize() {
 	mapChipField_->LoadMapChipCsv("Resources/map.csv");
 
 	GenerateBlocks();
-
-	viewProjection_.Initialize();
 
 	model_ = Model::CreateFromOBJ("Block");
 	playerModel_ = Model::CreateFromOBJ("Player");
@@ -54,10 +55,14 @@ void GameScene::Initialize() {
 	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(2, 18);
 
 	player_ = new Player();
-	player_->Initialize(playerModel_, &viewProjection_, playerPosition);
+	player_->Initialize(playerModel_, viewProjection_, playerPosition);
 
-	viewProjection_.farZ = 1200;
-	viewProjection_.Initialize();
+	cameraController_ = new CameraController();
+	cameraController_->Initialize();
+	cameraController_->SetTarget(player_);
+	cameraController_->Reset();
+
+	viewProjection_ = cameraController_->GetViewProjection();
 }
 
 void GameScene::Update() {
@@ -77,15 +82,16 @@ void GameScene::Update() {
 	if (isDebugCameraActive_){
 		debugCamera_->Update();
 
-		viewProjection_.matView = debugCamera_->GetViewProjection().matView;
-		viewProjection_.matProjection = debugCamera_->GetViewProjection().matProjection;
-		viewProjection_.TransferMatrix();
+		viewProjection_->matView = debugCamera_->GetViewProjection().matView;
+		viewProjection_->matProjection = debugCamera_->GetViewProjection().matProjection;
+		viewProjection_->TransferMatrix();
 	}
 	else{
-		viewProjection_.UpdateMatrix();
+		viewProjection_->UpdateMatrix();
 	}
 	sky_->Update();
 	player_->Update();
+	cameraController_->Update();
 }
 
 void GameScene::Draw() {
@@ -116,18 +122,18 @@ void GameScene::Draw() {
 	/// </summary>
 
 	//sky
-	sky_->Draw(viewProjection_);
+	sky_->Draw(*viewProjection_);
 
 	//block
 	for (auto blockLine : worldTransformBlocks_){
 		for (WorldTransform* block : blockLine){
 			if (!block)continue;
-			model_->Draw(*block, viewProjection_);
+			model_->Draw(*block, *viewProjection_);
 		}
 	}
 
 	//player
-	player_->Draw(viewProjection_);
+	player_->Draw(*viewProjection_);
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();

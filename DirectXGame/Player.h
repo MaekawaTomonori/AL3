@@ -13,6 +13,11 @@ public:
     void Initialize(Model* model, ViewProjection* viewProjection, const Vector3& position);
     void Update();
     void Draw(const ViewProjection& viewProjection) const;
+    WorldTransform& GetWorldTransform();
+    const Vector3& GetVelocity() const {
+		return velocity_;
+	}
+
 private: // methods
 	void Move();
     void Turning();
@@ -27,6 +32,15 @@ private://static
 
     static inline const float kTimeTurn = 0.3f;
 
+
+    static inline const float kJumpAcceleration = 0.2f;
+
+    static inline const float kGravityAcceleration = 0.01f;
+
+	static inline const float kLimitFallSpeed = 0.8f;
+
+
+
 private:
     WorldTransform worldTransform_{};
     Model* model_ = nullptr;
@@ -37,4 +51,6 @@ private:
 
     float turnFirstRotationY_ = 0.f;
     float turnTimer_ = 0.f;
+
+    bool onGround_ = true;
 };

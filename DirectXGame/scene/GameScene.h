@@ -10,6 +10,8 @@
 #include "ViewProjection.h"
 
 class Player;
+class CameraController;
+
 
 /// <summary>
 /// ゲームシーン
@@ -51,9 +53,7 @@ private: // メンバ変数
 	/// ゲームシーン用
 	/// </summary>
 
-	uint32_t blockTexture_{};
-
-	ViewProjection viewProjection_ = {};
+	ViewProjection* viewProjection_ = nullptr;
 
 	Model* model_ = nullptr;
 	Model* playerModel_ = nullptr;
@@ -72,6 +72,7 @@ private: // メンバ変数
 	bool isDebugCameraActive_ = false;
 	DebugCamera* debugCamera_ = nullptr;
 
+	CameraController* cameraController_ = nullptr;
 
 private: //method
 
