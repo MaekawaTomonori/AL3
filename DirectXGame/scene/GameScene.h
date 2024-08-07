@@ -57,7 +57,7 @@ public: // メンバ関数
 		return finished_;
 	}
 private: // 定数
-	static const int32_t kEnemyCount = 10;
+	static const int32_t kEnemyCount = 3;
 
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;

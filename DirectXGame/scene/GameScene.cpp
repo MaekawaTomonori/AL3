@@ -49,8 +49,7 @@ void GameScene::Initialize() {
 	enemyModel_ = Model::CreateFromOBJ("enemy");
 	for(int32_t i = 0; i < kEnemyCount; ++i){
 		std::shared_ptr<Enemy> enemy = std::make_shared<Enemy>();
-		Vector3 pos = Vector3::Random() * 10.f;
-		enemy->Initialize(enemyModel_, pos);
+		enemy->Initialize(enemyModel_, {3 + float(i), 1, 0});
 
 		enemies_.push_back(enemy);
 	}
