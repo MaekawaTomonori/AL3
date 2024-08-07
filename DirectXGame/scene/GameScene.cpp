@@ -18,6 +18,7 @@ GameScene::~GameScene() {
 	worldTransformBlocks_.clear();
 
 	delete model_;
+	delete playerModel_;
 	delete sky_;
 	delete player_;
 	delete debugCamera_;
@@ -36,7 +37,9 @@ void GameScene::Initialize() {
 	GenerateBlocks();
 
 	viewProjection_.Initialize();
+
 	model_ = Model::CreateFromOBJ("Block");
+	playerModel_ = Model::CreateFromOBJ("Player");
 
 	isDebugCameraActive_ = false;
 #ifdef _DEBUG
@@ -48,8 +51,10 @@ void GameScene::Initialize() {
 	sky_ = new Skydome();
 	sky_->Initialize();
 
+	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(2, 18);
+
 	player_ = new Player();
-	player_->Initialize();
+	player_->Initialize(playerModel_, &viewProjection_, playerPosition);
 
 	viewProjection_.farZ = 1200;
 	viewProjection_.Initialize();

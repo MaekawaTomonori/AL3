@@ -56,6 +56,7 @@ private: // メンバ変数
 	ViewProjection viewProjection_ = {};
 
 	Model* model_ = nullptr;
+	Model* playerModel_ = nullptr;
 
 	std::vector<std::vector<WorldTransform*>> worldTransformBlocks_;
 
