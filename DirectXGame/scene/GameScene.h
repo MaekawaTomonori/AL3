@@ -4,6 +4,7 @@
 #include "DebugCamera.h"
 #include "DirectXCommon.h"
 #include "Input.h"
+#include "MapChipField.h"
 #include "Model.h"
 #include "Skydome.h"
 #include "ViewProjection.h"
@@ -58,6 +59,8 @@ private: // メンバ変数
 
 	std::vector<std::vector<WorldTransform*>> worldTransformBlocks_;
 
+	MapChipField* mapChipField_;
+
 	//Player
 	Player* player_ = nullptr;
 
@@ -68,4 +71,8 @@ private: // メンバ変数
 	bool isDebugCameraActive_ = false;
 	DebugCamera* debugCamera_ = nullptr;
 
+
+private: //method
+
+	void GenerateBlocks();
 };
