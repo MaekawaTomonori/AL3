@@ -60,11 +60,33 @@ MapChipType MapChipField::GetMapChipTypeByIndex(uint32_t x, uint32_t y) const {
 
 }
 
+MapChipType MapChipField::GetMapChipTypeByIndex(IndexSet indexSet) const {
+	return GetMapChipTypeByIndex(indexSet.xIndex, indexSet.yIndex);
+}
+
 Vector3 MapChipField::GetMapChipPositionByIndex(uint32_t x, uint32_t y) const {
 	return Vector3{
 		kBlockWidth * x,
 		kBlockHeight * (kNumBlockVirtical - 1 - y),
 		0.f
+	};
+}
+
+IndexSet MapChipField::GetMapChipIndexSetByPosition(const Vector3& position) const {
+	return {
+		static_cast<uint32_t>((position.x + kBlockWidth / 2.f) / kBlockWidth),
+		kNumBlockVirtical - 1 - static_cast<uint32_t>((position.y + kBlockHeight / 2.f) / kBlockHeight)
+	};
+}
+
+Rect MapChipField::GetRectByIndex(IndexSet indexSet) const {
+	Vector3 center = GetMapChipPositionByIndex(indexSet.xIndex, indexSet.yIndex);
+
+	return {
+		center.x - kBlockWidth / 2.f,
+		center.x + kBlockWidth / 2.f,
+		center.y - kBlockHeight / 2.f,
+		center.y + kBlockHeight / 2.f
 	};
 }
 

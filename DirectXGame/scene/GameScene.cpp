@@ -35,9 +35,7 @@ void GameScene::Initialize() {
 	audio_ = Audio::GetInstance();
 
 	mapChipField_ = new MapChipField;
-	mapChipField_->LoadMapChipCsv("Resources/map.csv");
 
-	GenerateBlocks();
 
 	model_ = Model::CreateFromOBJ("Block");
 	playerModel_ = Model::CreateFromOBJ("Player");
@@ -52,10 +50,13 @@ void GameScene::Initialize() {
 	sky_ = new Skydome();
 	sky_->Initialize();
 
-	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(2, 18);
+
+	mapChipField_->LoadMapChipCsv("Resources/map.csv");
+	GenerateBlocks();
 
 	player_ = new Player();
-	player_->Initialize(playerModel_, viewProjection_, playerPosition);
+	player_->Initialize(playerModel_, viewProjection_);
+	player_->SetMapChipField(mapChipField_);
 
 	cameraController_ = new CameraController();
 	cameraController_->Initialize();

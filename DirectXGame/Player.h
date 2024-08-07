@@ -2,25 +2,58 @@
 #include "WorldTransform.h"
 #include "Model.h"
 
+class MapChipField;
+
 enum class LRDirection{
 	kRight,
     kLeft
 };
 
+struct CollisionMapInfo;
 class Player{
+	struct CollisionMapInfo{
+        bool ceiling = false; 
+        bool floor = false;
+        bool wall = false;
+        Vector3 move;
+    };
+
+	enum Corner{
+		kRightBottom,
+        kLeftBottom,
+        kRightTop,
+        kLeftTop,
+
+        kNumCorner
+	};
+
 public:
     ~Player();
-    void Initialize(Model* model, ViewProjection* viewProjection, const Vector3& position);
+    void Initialize(Model* model, ViewProjection* viewProjection);
     void Update();
     void Draw(const ViewProjection& viewProjection) const;
     WorldTransform& GetWorldTransform();
     const Vector3& GetVelocity() const {
 		return velocity_;
 	}
-
+    void SetMapChipField(MapChipField* mapChipField) {
+        mapChipField_ = mapChipField;
+    }
 private: // methods
 	void Move();
     void Turning();
+
+    Vector3 CornerPosition(const Vector3& center, Corner corner);
+
+    void CheckMapCollision(CollisionMapInfo& info);
+
+    void isCeiling(CollisionMapInfo& info);
+
+    void ReflectCollisionResult(const CollisionMapInfo& info);
+
+    void onCollision(const CollisionMapInfo& info);
+
+    void onHitCeiling(const CollisionMapInfo& info);
 
 private://static
     static inline const float kAcceleration = 0.05f;
@@ -39,12 +72,19 @@ private://static
 
 	static inline const float kLimitFallSpeed = 0.8f;
 
+    static inline const float kWidth = 0.8f;
 
+    static inline const float kHeight = 0.8f;
+
+    static inline const float kBlank = 0.1f;
 
 private:
+    
+
     WorldTransform worldTransform_{};
     Model* model_ = nullptr;
     ViewProjection* viewProjection_ = nullptr;
+    MapChipField* mapChipField_ = nullptr;
 
     Vector3 velocity_{};
     LRDirection lrDirection_ = LRDirection::kRight;
