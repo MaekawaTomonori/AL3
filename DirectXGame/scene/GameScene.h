@@ -9,6 +9,7 @@
 #include "Skydome.h"
 #include "ViewProjection.h"
 
+class Enemy;
 class Player;
 class CameraController;
 
@@ -57,6 +58,7 @@ private: // メンバ変数
 
 	Model* model_ = nullptr;
 	Model* playerModel_ = nullptr;
+	Model* enemyModel_ = nullptr;
 
 	std::vector<std::vector<WorldTransform*>> worldTransformBlocks_;
 
@@ -64,6 +66,8 @@ private: // メンバ変数
 
 	//Player
 	Player* player_ = nullptr;
+
+	Enemy* enemy_ = nullptr;
 
 	//Sky
 	Skydome* sky_ = nullptr;

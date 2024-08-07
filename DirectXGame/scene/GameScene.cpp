@@ -8,6 +8,7 @@
 #include "WorldTransform.h"
 
 #include "CameraController.h"
+#include "Enemy.h"
 
 GameScene::GameScene() {}
 
@@ -21,11 +22,13 @@ GameScene::~GameScene() {
 
 	delete model_;
 	delete playerModel_;
+	delete enemyModel_;
 	delete sky_;
 	delete player_;
 	delete debugCamera_;
 	delete mapChipField_;
 	delete cameraController_;
+	delete enemy_;
 }
 
 void GameScene::Initialize() {
@@ -39,6 +42,8 @@ void GameScene::Initialize() {
 
 	model_ = Model::CreateFromOBJ("Block");
 	playerModel_ = Model::CreateFromOBJ("Player");
+	enemyModel_ = Model::CreateFromOBJ("Enemy");
+
 
 	isDebugCameraActive_ = false;
 #ifdef _DEBUG
@@ -50,20 +55,22 @@ void GameScene::Initialize() {
 	sky_ = new Skydome();
 	sky_->Initialize();
 
-
 	mapChipField_->LoadMapChipCsv("Resources/map.csv");
 	GenerateBlocks();
+
+	cameraController_ = new CameraController();
+	cameraController_->Initialize();
+	viewProjection_ = cameraController_->GetViewProjection();
 
 	player_ = new Player();
 	player_->Initialize(playerModel_, viewProjection_);
 	player_->SetMapChipField(mapChipField_);
 
-	cameraController_ = new CameraController();
-	cameraController_->Initialize();
+	enemy_ = new Enemy();
+	enemy_->Initialize(enemyModel_, viewProjection_);
+
 	cameraController_->SetTarget(player_);
 	cameraController_->Reset();
-
-	viewProjection_ = cameraController_->GetViewProjection();
 }
 
 void GameScene::Update() {
@@ -92,6 +99,7 @@ void GameScene::Update() {
 	}
 	sky_->Update();
 	player_->Update();
+	enemy_->Update();
 	cameraController_->Update();
 }
 
@@ -135,6 +143,11 @@ void GameScene::Draw() {
 
 	//player
 	player_->Draw(*viewProjection_);
+
+	//enemy
+	if (enemy_){
+		enemy_->Draw();
+	}
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
