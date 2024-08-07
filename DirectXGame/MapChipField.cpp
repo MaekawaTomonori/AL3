@@ -9,7 +9,8 @@
 namespace{
 	std::map<std::string, MapChipType> mapChipTable = {
 		{"0", MapChipType::kBlank},
-		{"1", MapChipType::kBlock}
+		{"1", MapChipType::kBlock},
+		{"2", MapChipType::kPlayer},
 	};
 }
 
@@ -43,6 +44,10 @@ void MapChipField::LoadMapChipCsv(const std::string& filePath) {
 		for(uint32_t j = 0; j < kNumBlockHorizontal; ++j){
 			std::string word;
 			getline(line_stream, word, ',');
+			if(word == "2"){
+				playerPosition_ = GetMapChipPositionByIndex(j, i);
+				word = "0";
+			}
 			mapChipData_.data[i][j] = mapChipTable[word];
 		}
 	}

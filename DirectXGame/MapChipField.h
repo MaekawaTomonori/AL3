@@ -7,7 +7,8 @@
 
 enum class MapChipType{
 	kBlank,
-	kBlock
+	kBlock,
+	kPlayer
 };
 
 struct MapChipData{
@@ -39,7 +40,10 @@ class MapChipField{
 private: //variables
 	MapChipData mapChipData_;
 
+	Vector3 playerPosition_ {};
+
 	void ResetMapChipData();
+
 
 public: //functions
 	void LoadMapChipCsv(const std::string& filePath);
@@ -54,5 +58,7 @@ public: //functions
 	IndexSet GetMapChipIndexSetByPosition(const Vector3& position) const;
 
 	Rect GetRectByIndex(IndexSet indexSet) const;
+
+	Vector3 GetPlayerPosition() const { return playerPosition_; }
 };
 

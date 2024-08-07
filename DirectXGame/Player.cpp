@@ -31,27 +31,7 @@ void Player::Update() {
 
     onCollision(info);
 
-    //接地判定
-    bool landing = false;
-
-    if (velocity_.y < 0){
-        if (worldTransform_.translation_.y <= 1.f){
-            landing = true;
-        }
-    }
-
-    if (onGround_){
-        if (velocity_.y > 0.f){
-            onGround_ = false;
-        }
-    } else{
-        if (landing){
-            worldTransform_.translation_.y = 1.f;
-            velocity_.x *= (1.f - kAttenuation);
-            velocity_.y = 0;
-            onGround_ = true;
-        }
-    }
+    onLanding(info);
 
 	Turning();
 
@@ -65,6 +45,11 @@ void Player::Draw(const ViewProjection& viewProjection) const {
 
 WorldTransform& Player::GetWorldTransform() {
     return worldTransform_;
+}
+
+void Player::SetMapChipField(MapChipField* mapChipField) {
+	mapChipField_ = mapChipField;
+	worldTransform_.translation_ = mapChipField_->GetPlayerPosition();
 }
 
 void Player::Move() {
@@ -140,6 +125,7 @@ Vector3 Player::CornerPosition(const Vector3& center, Corner corner) {
 
 void Player::CheckMapCollision(CollisionMapInfo& info) {
     isCeiling(info);
+    isLanding(info);
 }
 
 void Player::isCeiling(CollisionMapInfo& info) {
@@ -185,6 +171,53 @@ void Player::isCeiling(CollisionMapInfo& info) {
     }
 }
 
+void Player::isLanding(CollisionMapInfo& info) {
+    if (0 <= info.move.y){
+        return;
+    }
+
+    std::array<Vector3, kNumCorner> cornerPosition;
+
+    if (info.move.y <= 0){
+        return;
+    }
+
+    for (uint32_t i = 0; i < kNumCorner; ++i){
+        cornerPosition[i] = CornerPosition(worldTransform_.translation_ + info.move, static_cast<Corner>(i));
+    }
+
+    MapChipType mapChipType;
+    bool hit = false;
+    IndexSet indexSet;
+
+    {
+	    indexSet = mapChipField_->GetMapChipIndexSetByPosition(cornerPosition[kLeftBottom]);
+		mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet);
+		if (mapChipType == MapChipType::kBlock){
+			hit = true;
+		}
+	}
+	{
+		indexSet = mapChipField_->GetMapChipIndexSetByPosition(cornerPosition[kRightBottom]);
+		mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet);
+		if (mapChipType == MapChipType::kBlock){
+			hit = true;
+		}
+    }
+
+    if (hit){
+        indexSet = mapChipField_->GetMapChipIndexSetByPosition({
+            (cornerPosition[kLeftBottom].x + cornerPosition[kRightBottom].x) / 2.f,
+            cornerPosition[kLeftBottom].y,
+            (cornerPosition[kLeftBottom].z + cornerPosition[kRightBottom].z) / 2.f
+        });
+
+        Rect rect = mapChipField_->GetRectByIndex(indexSet);
+        info.move.y = std::min(0.f, rect.top - worldTransform_.translation_.y + (kHeight / 2 + kBlank));
+        info.landing = true;
+    }
+}
+
 void Player::ReflectCollisionResult(const CollisionMapInfo& info) {
     worldTransform_.translation_ += info.move;
 }
@@ -196,5 +229,55 @@ void Player::onCollision(const CollisionMapInfo& info) {
 void Player::onHitCeiling(const CollisionMapInfo& info) {
     if (info.ceiling){
         velocity_.y = 0;
+    }
+}
+
+void Player::onLanding(CollisionMapInfo& info) {
+    //接地判定
+    if (onGround_){
+        if (0.f <= velocity_.y){
+            onGround_ = false;
+        } else{
+            std::array<Vector3, kNumCorner> cornerPosition;
+
+            for(uint32_t i = 0; i < kNumCorner; ++i){
+				cornerPosition[i] = CornerPosition(worldTransform_.translation_, static_cast<Corner>(i));
+			}
+
+            MapChipType mapChipType;
+			bool hit = false;
+			IndexSet indexSet;
+
+			{
+				indexSet = mapChipField_->GetMapChipIndexSetByPosition(cornerPosition[kLeftBottom]);
+				mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet);
+				if (mapChipType == MapChipType::kBlock){
+					hit = true;
+				}
+			}
+            {
+                indexSet = mapChipField_->GetMapChipIndexSetByPosition(cornerPosition[kRightBottom]);
+                mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet);
+                if (mapChipType == MapChipType::kBlock){
+                    hit = true;
+                }
+            }
+
+            if(!hit){
+                onGround_ = false;
+            }
+        }
+
+    } else{
+        if (info.landing){
+            velocity_.x *= (1.f - kAttenuation);
+            velocity_.y = 0;
+            onGround_ = true;
+        }
+    }
+
+    if(worldTransform_.translation_.y <= 1){
+        worldTransform_.translation_.y = 1;
+        onGround_ = true;
     }
 }

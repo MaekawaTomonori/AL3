@@ -13,7 +13,7 @@ struct CollisionMapInfo;
 class Player{
 	struct CollisionMapInfo{
         bool ceiling = false; 
-        bool floor = false;
+        bool landing = false;
         bool wall = false;
         Vector3 move;
     };
@@ -36,9 +36,8 @@ public:
     const Vector3& GetVelocity() const {
 		return velocity_;
 	}
-    void SetMapChipField(MapChipField* mapChipField) {
-        mapChipField_ = mapChipField;
-    }
+    void SetMapChipField(MapChipField* mapChipField);
+
 private: // methods
 	void Move();
     void Turning();
@@ -48,12 +47,15 @@ private: // methods
     void CheckMapCollision(CollisionMapInfo& info);
 
     void isCeiling(CollisionMapInfo& info);
+    void isLanding(CollisionMapInfo& info);
 
     void ReflectCollisionResult(const CollisionMapInfo& info);
 
     void onCollision(const CollisionMapInfo& info);
 
     void onHitCeiling(const CollisionMapInfo& info);
+
+    void onLanding(CollisionMapInfo& info);
 
 private://static
     static inline const float kAcceleration = 0.05f;
