@@ -1,5 +1,7 @@
 #include "DeathParticle.h"
 
+#include <algorithm>
+
 #include "MathUtils.h"
 #include "Model.h"
 
@@ -14,24 +16,29 @@ void DeathParticle::Initialize(Model* model, ViewProjection* viewProjection, con
 		worldTransform.Initialize();
 		worldTransform.translation_ = position;
 	}
+
+	objectColor_.Initialize();
+	color_ = {1,1,1,1};
 }
 
 void DeathParticle::Update() {
 	if (isFinished_)return;
 	counter_ += 1.f / 60.f;
+	if(kDuration <= counter_){
+		counter_ = kDuration;
+
+		isFinished_ = true;
+	}
+
+	color_.w = std::clamp(1.f - counter_ / kDuration, 0.f, 1.f);
+	objectColor_.SetColor(color_);
+	objectColor_.TransferMatrix();
+
 	for(uint32_t i = kNumParticles; i --> 0;){
 		Vector3 velocity = {kSpeed, 0,0};
 		float angle = kAngleUnit * i;
 		Matrix4x4 matrixRotation = MathUtils::MakeRotateZ(angle);
 		velocity = MathUtils::Transform(velocity, matrixRotation);
-
-
-		if(kDuration <= counter_){
-			counter_ = kDuration;
-
-			isFinished_ = true;
-		}
-
 
 		worldTransforms_[i].translation_ += velocity;
 		worldTransforms_[i].UpdateMatrix();
@@ -41,6 +48,6 @@ void DeathParticle::Update() {
 void DeathParticle::Draw() const {
 	if(isFinished_)return;
 	for(auto& worldTransform : worldTransforms_){
-		model_->Draw(worldTransform, *viewProjection_);
+		model_->Draw(worldTransform, *viewProjection_, &objectColor_);
 	}
 }

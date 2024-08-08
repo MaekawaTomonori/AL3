@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <numbers>
 
+#include "ObjectColor.h"
 #include "WorldTransform.h"
 
 class ViewProjection;
@@ -27,4 +28,7 @@ private:
 
 	bool isFinished_ = false;
 	float counter_ = 0.f;
+
+	ObjectColor objectColor_;
+	Vector4 color_ {};
 };
