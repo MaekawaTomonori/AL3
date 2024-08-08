@@ -1,11 +1,17 @@
 #include "MathUtils.h"
 #include <cmath>
 #include <cassert>
+#include <numbers>
+
 #include "Vector3.h"
 
 
 Vector3 MathUtils::Lerp(const Vector3& a, const Vector3& b, float t) {
     return a + (b - a) * t;
+}
+
+float MathUtils::DEG2RAD(float deg) {
+    return deg / 360.f * 2.f * std::numbers::pi_v<float>;
 }
 
 Matrix4x4 MathUtils::MakeTranslateMatrix(const Vector3& velocity) {
