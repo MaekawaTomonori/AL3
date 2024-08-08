@@ -50,6 +50,7 @@ WorldTransform& Player::GetWorldTransform() {
 void Player::SetMapChipField(MapChipField* mapChipField) {
 	mapChipField_ = mapChipField;
 	worldTransform_.translation_ = mapChipField_->GetPlayerPosition();
+    worldTransform_.UpdateMatrix();
 }
 
 Vector3 Player::GetWorldPosition() const {

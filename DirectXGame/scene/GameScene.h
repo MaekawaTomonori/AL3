@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Audio.h"
+#include "DeathParticle.h"
 #include "DebugCamera.h"
 #include "DirectXCommon.h"
 #include "Input.h"
@@ -62,6 +63,7 @@ private: // メンバ変数
 	Model* model_ = nullptr;
 	Model* playerModel_ = nullptr;
 	Model* enemyModel_ = nullptr;
+	Model* particleModel_ = nullptr;
 
 	std::vector<std::vector<WorldTransform*>> worldTransformBlocks_;
 
@@ -80,6 +82,8 @@ private: // メンバ変数
 	DebugCamera* debugCamera_ = nullptr;
 
 	CameraController* cameraController_ = nullptr;
+
+	DeathParticle* particle_ = nullptr;
 
 private: //method
 

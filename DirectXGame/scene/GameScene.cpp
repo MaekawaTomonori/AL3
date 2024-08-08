@@ -24,6 +24,7 @@ GameScene::~GameScene() {
 	delete model_;
 	delete playerModel_;
 	delete enemyModel_;
+	delete particleModel_;
 	delete sky_;
 	delete player_;
 	delete debugCamera_;
@@ -33,6 +34,7 @@ GameScene::~GameScene() {
 		delete enemy;
 	}
 	enemies_.clear();
+	delete particle_;
 }
 
 void GameScene::Initialize() {
@@ -47,6 +49,7 @@ void GameScene::Initialize() {
 	model_ = Model::CreateFromOBJ("Block");
 	playerModel_ = Model::CreateFromOBJ("Player");
 	enemyModel_ = Model::CreateFromOBJ("Enemy");
+	particleModel_ = Model::CreateFromOBJ("DeathParticle");
 
 
 	isDebugCameraActive_ = false;
@@ -79,6 +82,11 @@ void GameScene::Initialize() {
 	}
 	cameraController_->SetTarget(player_);
 	cameraController_->Reset();
+
+
+	//kari
+	particle_ = new DeathParticle();
+	particle_->Initialize(particleModel_, cameraController_->GetViewProjection(), player_->GetWorldPosition());
 }
 
 void GameScene::Update() {
@@ -115,6 +123,10 @@ void GameScene::Update() {
 	cameraController_->Update();
 
 	CheckAllCollisions();
+
+	if(particle_){
+		particle_->Update();
+	}
 }
 
 void GameScene::Draw() {
@@ -163,6 +175,10 @@ void GameScene::Draw() {
 		for(auto& enemy : enemies_){
 			enemy->Draw();
 		}
+	}
+
+	if(particle_){
+		particle_->Draw();
 	}
 
 	// 3Dオブジェクト描画後処理
