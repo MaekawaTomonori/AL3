@@ -42,6 +42,7 @@ public:
     Vector3 GetWorldPosition() const;
     AABB GetAABB() const;
     void onCollision(Enemy* enemy);
+    bool IsDead() const;
 
 private: // methods
 	void Move();
@@ -100,4 +101,6 @@ private:
     float turnTimer_ = 0.f;
 
     bool onGround_ = true;
+
+    bool isDead_ = false;
 };

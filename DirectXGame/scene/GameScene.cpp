@@ -53,9 +53,6 @@ void GameScene::Initialize() {
 
 
 	isDebugCameraActive_ = false;
-#ifdef _DEBUG
-	isDebugCameraActive_ = true;
-#endif
 
 	debugCamera_ = new DebugCamera(1280, 720);
 
@@ -83,10 +80,7 @@ void GameScene::Initialize() {
 	cameraController_->SetTarget(player_);
 	cameraController_->Reset();
 
-
-	//kari
-	particle_ = new DeathParticle();
-	particle_->Initialize(particleModel_, cameraController_->GetViewProjection(), player_->GetWorldPosition());
+	phase_ = Phase::kPlay;
 }
 
 void GameScene::Update() {
@@ -96,6 +90,36 @@ void GameScene::Update() {
 			wtfb->UpdateMatrix();
 		}
 	}
+	sky_->Update();
+
+	if (!enemies_.empty()){
+		for (auto& enemy : enemies_){
+			enemy->Update();
+		}
+
+	}
+	cameraController_->Update();
+	switch (phase_){
+	case Phase::kPlay:
+		player_->Update();
+
+
+		CheckAllCollisions();
+
+		if(player_->IsDead()){
+			ChangePhase();
+			particle_ = new DeathParticle();
+			particle_->Initialize(particleModel_, cameraController_->GetViewProjection(), player_->GetWorldPosition());
+		}
+
+		break;
+	case Phase::kDeath:
+		if(particle_){
+			particle_->Update();
+		}
+		break;
+	}
+	
 
 #ifdef _DEBUG
 	if (input_->TriggerKey(DIK_A)){
@@ -109,24 +133,7 @@ void GameScene::Update() {
 		viewProjection_->matView = debugCamera_->GetViewProjection().matView;
 		viewProjection_->matProjection = debugCamera_->GetViewProjection().matProjection;
 		viewProjection_->TransferMatrix();
-	}
-	else{
-		viewProjection_->UpdateMatrix();
-	}
-	sky_->Update();
-	player_->Update();
-	if (!enemies_.empty()){
-		for (auto& enemy : enemies_){
-			enemy->Update();
-		}
-	}
-	cameraController_->Update();
-
-	CheckAllCollisions();
-
-	if(particle_){
-		particle_->Update();
-	}
+	}	
 }
 
 void GameScene::Draw() {
@@ -167,8 +174,10 @@ void GameScene::Draw() {
 		}
 	}
 
-	//player
-	player_->Draw(*viewProjection_);
+	if (phase_ == Phase::kPlay){
+		//player
+		player_->Draw(*viewProjection_);
+	}
 
 	//enemy
 	if (!enemies_.empty()){
@@ -231,5 +240,15 @@ void GameScene::CheckAllCollisions() {
 			player_->onCollision(enemy);
 			enemy->onCollision(player_);
 		}
+	}
+}
+
+void GameScene::ChangePhase() {
+	switch (phase_){
+	case Phase::kPlay:
+		phase_ = Phase::kDeath;
+		break;
+	case Phase::kDeath:
+		break;
 	}
 }

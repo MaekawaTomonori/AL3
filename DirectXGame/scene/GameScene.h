@@ -46,8 +46,14 @@ public: // メンバ関数
 	/// </summary>
 	void Draw();
 
-private: // static va
+private:
+	enum class Phase{
+		kPlay,
+		kDeath,
+	};
+
 	static inline const uint32_t kEnemyCount = 3;
+
 
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
@@ -85,8 +91,11 @@ private: // メンバ変数
 
 	DeathParticle* particle_ = nullptr;
 
+	Phase phase_ = Phase::kPlay;
+
 private: //method
 
 	void GenerateBlocks();
 	void CheckAllCollisions();
+	void ChangePhase();
 };
