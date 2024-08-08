@@ -8,6 +8,7 @@
 #include "WorldTransform.h"
 
 #include "CameraController.h"
+#include "Collision.h"
 #include "Enemy.h"
 
 GameScene::GameScene() {}
@@ -28,7 +29,10 @@ GameScene::~GameScene() {
 	delete debugCamera_;
 	delete mapChipField_;
 	delete cameraController_;
-	delete enemy_;
+	for(auto& enemy : enemies_){
+		delete enemy;
+	}
+	enemies_.clear();
 }
 
 void GameScene::Initialize() {
@@ -66,9 +70,13 @@ void GameScene::Initialize() {
 	player_->Initialize(playerModel_, viewProjection_);
 	player_->SetMapChipField(mapChipField_);
 
-	enemy_ = new Enemy();
-	enemy_->Initialize(enemyModel_, viewProjection_);
-
+	Vector3 enemyP = { 6, 1, 0 };
+	for (uint32_t i = kEnemyCount; i-- > 0;){
+		Enemy* enemy = new Enemy();
+		enemyP.x += 4;
+		enemy->Initialize(enemyModel_, viewProjection_, enemyP);
+		enemies_.push_back(enemy);
+	}
 	cameraController_->SetTarget(player_);
 	cameraController_->Reset();
 }
@@ -99,8 +107,14 @@ void GameScene::Update() {
 	}
 	sky_->Update();
 	player_->Update();
-	enemy_->Update();
+	if (!enemies_.empty()){
+		for (auto& enemy : enemies_){
+			enemy->Update();
+		}
+	}
 	cameraController_->Update();
+
+	CheckAllCollisions();
 }
 
 void GameScene::Draw() {
@@ -145,8 +159,10 @@ void GameScene::Draw() {
 	player_->Draw(*viewProjection_);
 
 	//enemy
-	if (enemy_){
-		enemy_->Draw();
+	if (!enemies_.empty()){
+		for(auto& enemy : enemies_){
+			enemy->Draw();
+		}
 	}
 
 	// 3Dオブジェクト描画後処理
@@ -184,6 +200,20 @@ void GameScene::GenerateBlocks() {
 				worldTransformBlocks_[i][j] = worldTransform;
 				worldTransformBlocks_[i][j]->translation_ = mapChipField_->GetMapChipPositionByIndex(j, i);
 			}
+		}
+	}
+}
+
+void GameScene::CheckAllCollisions() {
+	AABB playerAABB = player_->GetAABB();
+
+	for(auto& enemy : enemies_){
+		AABB enemyAABB = enemy->GetAABB();
+		if (Collision::IsCollision(playerAABB, enemyAABB)){
+			// プレイヤーと敵の衝突処理
+			// ここに衝突時の処理を追加できる
+			player_->onCollision(enemy);
+			enemy->onCollision(player_);
 		}
 	}
 }

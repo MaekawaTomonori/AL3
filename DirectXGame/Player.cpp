@@ -52,6 +52,28 @@ void Player::SetMapChipField(MapChipField* mapChipField) {
 	worldTransform_.translation_ = mapChipField_->GetPlayerPosition();
 }
 
+Vector3 Player::GetWorldPosition() const {
+    return {
+        worldTransform_.matWorld_.m[3][0],
+        worldTransform_.matWorld_.m[3][1],
+        worldTransform_.matWorld_.m[3][2],
+    };
+}
+
+AABB Player::GetAABB() const {
+    Vector3 center = GetWorldPosition();
+	return {
+        {center.x - kWidth / 2.f, center.y - kHeight / 2.f, center.z - kWidth / 2.f},
+        {center.x + kWidth / 2.f, center.y + kHeight / 2.f, center.z + kWidth / 2.f}
+	};
+}
+
+void Player::onCollision(Enemy* enemy) {
+    (void)enemy;
+
+    velocity_.y = kJumpAcceleration;
+}
+
 void Player::Move() {
     Input* input = Input::GetInstance();
 

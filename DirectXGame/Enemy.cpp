@@ -8,11 +8,11 @@
 Enemy::~Enemy() {
 }
 
-void Enemy::Initialize(Model* model, ViewProjection* viewProjection) {
+void Enemy::Initialize(Model* model, ViewProjection* viewProjection, Vector3 position) {
     model_ = model;
 	viewProjection_ = viewProjection;
     worldTransform_.Initialize();
-    worldTransform_.translation_ = {6, 1, 0};
+    worldTransform_.translation_ = position;
     worldTransform_.rotation_.y = -std::numbers::pi_v<float> / 2.f;
     velocity_ = {-kWalkSpeed, 0,0};
     walkTimer_ = 0.f;
@@ -32,4 +32,24 @@ void Enemy::Update() {
 
 void Enemy::Draw() const {
     model_->Draw(worldTransform_, *viewProjection_);
+}
+
+Vector3 Enemy::GetWorldPosition() const {
+    return {
+		worldTransform_.matWorld_.m[3][0],
+		worldTransform_.matWorld_.m[3][1],
+		worldTransform_.matWorld_.m[3][2],
+	};
+}
+
+AABB Enemy::GetAABB() const {
+    Vector3 center = GetWorldPosition();
+    return {
+		center.x - kWidth / 2, center.y - kHeight / 2, center.z - kWidth / 2,
+		center.x + kWidth / 2, center.y + kHeight / 2, center.z + kWidth / 2
+	};
+}
+
+void Enemy::onCollision(Player* player) {
+    (void)player;
 }

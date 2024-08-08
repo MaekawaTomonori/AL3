@@ -1,7 +1,9 @@
 #pragma once
+#include "AABB.h"
 #include "WorldTransform.h"
 #include "Model.h"
 
+class Enemy;
 class MapChipField;
 
 enum class LRDirection{
@@ -37,6 +39,9 @@ public:
 		return velocity_;
 	}
     void SetMapChipField(MapChipField* mapChipField);
+    Vector3 GetWorldPosition() const;
+    AABB GetAABB() const;
+    void onCollision(Enemy* enemy);
 
 private: // methods
 	void Move();

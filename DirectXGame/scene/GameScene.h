@@ -45,6 +45,9 @@ public: // メンバ関数
 	/// </summary>
 	void Draw();
 
+private: // static va
+	static inline const uint32_t kEnemyCount = 3;
+
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
@@ -67,7 +70,7 @@ private: // メンバ変数
 	//Player
 	Player* player_ = nullptr;
 
-	Enemy* enemy_ = nullptr;
+	std::list<Enemy*> enemies_;
 
 	//Sky
 	Skydome* sky_ = nullptr;
@@ -81,4 +84,5 @@ private: // メンバ変数
 private: //method
 
 	void GenerateBlocks();
+	void CheckAllCollisions();
 };
