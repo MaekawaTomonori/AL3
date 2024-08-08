@@ -116,6 +116,12 @@ void GameScene::Update() {
 	case Phase::kDeath:
 		if(particle_){
 			particle_->Update();
+
+			if(particle_->isFinished()){
+				delete particle_;
+				particle_ = nullptr;
+				finished_ = true;
+			}
 		}
 		break;
 	}

@@ -46,6 +46,10 @@ public: // メンバ関数
 	/// </summary>
 	void Draw();
 
+	bool isFinished() const {
+		return finished_;
+	}
+
 private:
 	enum class Phase{
 		kPlay,
@@ -92,6 +96,8 @@ private: // メンバ変数
 	DeathParticle* particle_ = nullptr;
 
 	Phase phase_ = Phase::kPlay;
+
+	bool finished_ = false;
 
 private: //method
 

@@ -15,6 +15,10 @@ public:
 	void Update();
 	void Draw() const;
 
+	bool isFinished() const {
+		return isFinished_;
+	}
+
 private:
 	static inline const uint32_t kNumParticles = 8;
 	static inline const float kDuration = 1.f;
